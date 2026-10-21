@@ -1,0 +1,241 @@
+/* Carpetas de Medios — estilos (paleta clara) */
+:root {
+	--cdm-w: 236px;
+	--cdm-accent: #2563eb;
+	--cdm-accent-soft: #e8efff;
+	--cdm-border: #dcdcde;
+	--cdm-text: #1d2327;
+	--cdm-muted: #646970;
+	--cdm-bg: #f6f7f9;
+}
+
+.cdm-sidebar, .cdm-sidebar * { box-sizing: border-box; }
+
+.cdm-sidebar {
+	display: flex;
+	flex-direction: column;
+	width: var(--cdm-w);
+	background: var(--cdm-bg);
+	border-right: 1px solid var(--cdm-border);
+	color: var(--cdm-text);
+	font-size: 13px;
+	line-height: 1.4;
+	min-height: 0;
+}
+
+.cdm-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 6px 12px; }
+.cdm-title { font-weight: 600; font-size: 13px; letter-spacing: .01em; }
+.cdm-head-btns { display: flex; gap: 2px; }
+.cdm-ibtn {
+	width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+	border: 0; border-radius: 4px; background: transparent; color: var(--cdm-muted); cursor: pointer; font-size: 18px; line-height: 1;
+}
+.cdm-ibtn:hover, .cdm-ibtn:focus { background: #e4e7ec; color: var(--cdm-text); outline: 0; }
+.cdm-new { color: var(--cdm-accent); font-weight: 600; }
+
+.cdm-rail { display: none; }
+
+.cdm-searchwrap { padding: 0 8px 6px; }
+.cdm-search.cdm-search, .cdm-sidebar .cdm-search {
+	width: 100%; height: 30px; min-height: 30px; margin: 0; padding: 0 8px; font-size: 13px;
+	border: 1px solid var(--cdm-border); border-radius: 4px; background: #fff;
+}
+
+.cdm-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 8px; }
+.cdm-chip {
+	display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 2px 8px; font-size: 12px; line-height: 1.5;
+	border: 1px solid var(--cdm-border); border-radius: 999px; background: #fff; color: var(--cdm-text); cursor: pointer; text-decoration: none;
+}
+.cdm-chip span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdm-chip:hover { border-color: #b8bec8; }
+.cdm-chip.is-on { background: var(--cdm-accent-soft); border-color: var(--cdm-accent); color: #1e40af; }
+.cdm-chip-gear { padding: 2px 7px; color: var(--cdm-muted); }
+.cdm-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; display: inline-block; }
+
+.cdm-tree { flex: 1 1 auto; overflow: auto; padding: 0 4px 8px; min-height: 0; }
+.cdm-tree ul { list-style: none; margin: 0; padding: 0; }
+.cdm-node { margin: 0; }
+.cdm-row {
+	display: flex; align-items: center; gap: 4px; min-height: 30px; padding: 3px 4px 3px 8px; border-radius: 5px; cursor: pointer;
+	border: 1px solid transparent; user-select: none; -webkit-user-select: none;
+}
+.cdm-row:hover { background: #e9ecf1; }
+.cdm-row:focus { outline: 0; border-color: var(--cdm-accent); }
+.cdm-node.is-active > .cdm-row { background: var(--cdm-accent-soft); color: #1e3a8a; font-weight: 600; }
+.cdm-node.is-dim > .cdm-row { opacity: .55; }
+.cdm-row.is-drop { background: #d6e4ff; border-color: var(--cdm-accent); border-style: dashed; }
+
+.cdm-toggle {
+	width: 16px; height: 16px; flex: none; padding: 0; border: 0; background: transparent; color: var(--cdm-muted);
+	display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.cdm-toggle svg { transition: transform .12s; }
+.cdm-node.is-open > .cdm-row > .cdm-toggle svg { transform: rotate(90deg); }
+.cdm-toggle--empty { cursor: default; }
+
+.cdm-ico { flex: none; display: inline-flex; color: #7b8aa5; }
+.cdm-ico svg { display: block; }
+.cdm-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdm-count { flex: none; min-width: 18px; padding: 0 5px; font-size: 11px; color: var(--cdm-muted); text-align: right; }
+.cdm-more {
+	flex: none; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; background: transparent;
+	color: var(--cdm-muted); cursor: pointer; font-size: 16px; line-height: 1; visibility: hidden;
+}
+.cdm-row:hover .cdm-more, .cdm-row:focus .cdm-more, .cdm-node.is-active > .cdm-row .cdm-more { visibility: visible; }
+.cdm-more:hover { background: #d4d9e1; color: var(--cdm-text); }
+
+.cdm-empty { margin: 10px 8px; color: var(--cdm-muted); font-size: 12px; }
+.cdm-hint { padding: 7px 12px; border-top: 1px solid var(--cdm-border); font-size: 11.5px; color: var(--cdm-muted); background: #eef0f4; }
+.cdm-hint b { color: var(--cdm-text); font-weight: 600; word-break: break-word; }
+
+/* ---- menú contextual ---- */
+.cdm-menu {
+	position: fixed; min-width: 180px; margin: 0; padding: 4px; list-style: none;
+	background: #fff; border: 1px solid var(--cdm-border); border-radius: 6px; box-shadow: 0 6px 24px rgba(15, 23, 42, .18);
+	font-size: 13px;
+}
+.cdm-menu li { margin: 0; padding: 7px 12px; border-radius: 4px; cursor: pointer; color: var(--cdm-text); }
+.cdm-menu li:hover, .cdm-menu li:focus { background: var(--cdm-accent-soft); outline: 0; }
+.cdm-menu li.is-danger { color: #b32d2e; }
+.cdm-menu li.is-danger:hover { background: #fcebeb; }
+.cdm-menu-sep { height: 1px; padding: 0 !important; margin: 4px 0 !important; background: var(--cdm-border); cursor: default !important; }
+.cdm-menu-sep:hover { background: var(--cdm-border) !important; }
+
+/* ---- diálogo ---- */
+.cdm-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, .45); }
+.cdm-dialog {
+	width: 380px; max-width: calc(100vw - 32px); padding: 20px 22px 18px; background: #fff; border-radius: 8px;
+	box-shadow: 0 16px 48px rgba(15, 23, 42, .3); color: var(--cdm-text); font-size: 13px;
+}
+.cdm-dialog h3 { margin: 0 0 12px; font-size: 16px; color: #1e3a8a; }
+.cdm-dlg-msg { margin: 0 0 14px; line-height: 1.5; }
+.cdm-field { display: block; margin: 0 0 12px; }
+.cdm-field > span { display: block; margin-bottom: 4px; font-weight: 600; font-size: 12px; color: var(--cdm-muted); }
+.cdm-field input[type=text], .cdm-field select { width: 100%; max-width: 100%; height: 34px; margin: 0; }
+.cdm-field input[type=color] { width: 56px; height: 34px; padding: 2px; border: 1px solid var(--cdm-border); border-radius: 4px; background: #fff; }
+.cdm-dlg-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.cdm-dlg-btns .cdm-danger, .cdm-dlg-btns .button-primary.cdm-danger { background: #b32d2e; border-color: #b32d2e; }
+
+.cdm-toast {
+	position: fixed; left: 50%; bottom: 28px; z-index: 2147483001; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+	padding: 9px 16px; border-radius: 6px; background: #1e3a8a; color: #fff; font-size: 13px; box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
+	transition: opacity .18s, transform .18s;
+}
+.cdm-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+.cdm-toast.is-error { background: #b32d2e; }
+
+.cdm-dragimg {
+	position: absolute; top: -200px; left: -200px; padding: 6px 12px; border-radius: 6px; background: var(--cdm-accent); color: #fff;
+	font: 600 12px/1.2 -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ================= Ventana de medios (modal) y rejilla ================= */
+
+.attachments-browser.cdm-has-sidebar > .cdm-sidebar { position: absolute; top: 0; left: 0; bottom: 0; z-index: 2; }
+.attachments-browser.cdm-has-sidebar > .media-toolbar,
+.attachments-browser.cdm-has-sidebar > .attachments,
+.attachments-browser.cdm-has-sidebar > .attachments-wrapper,
+.attachments-browser.cdm-has-sidebar > .uploader-inline { left: var(--cdm-w); }
+/* Cuando la lista va dentro de .attachments-wrapper (WP recientes), es ella la absoluta */
+.attachments-browser.cdm-has-sidebar:not(.has-load-more) .attachments { left: var(--cdm-w); }
+
+li.attachment[draggable="true"] { -webkit-user-drag: element; }
+
+/* Durante nuestro arrastre, WordPress no debe tapar la pantalla con «Suelta archivos para subirlos» */
+body.cdm-dragging .uploader-window,
+body.cdm-dragging .uploader-editor { display: none !important; pointer-events: none !important; }
+
+/* Barra lateral plegada */
+.attachments-browser.cdm-collapsed > .cdm-sidebar { width: 40px; overflow: hidden; }
+.attachments-browser.cdm-collapsed > .cdm-sidebar > *:not(.cdm-rail) { display: none !important; }
+.attachments-browser.cdm-collapsed > .cdm-sidebar > .cdm-rail {
+	display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-top: 6px; padding: 0;
+	border: 0; background: transparent; color: var(--cdm-accent); cursor: pointer;
+}
+.attachments-browser.cdm-collapsed > .media-toolbar,
+.attachments-browser.cdm-collapsed > .attachments,
+.attachments-browser.cdm-collapsed > .attachments-wrapper,
+.attachments-browser.cdm-collapsed > .uploader-inline { left: 40px; }
+.attachments-browser.cdm-collapsed:not(.has-load-more) .attachments { left: 40px; }
+
+/* Rejilla de Medios (upload.php, modo cuadrícula): el contenedor no es absoluto */
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar { box-sizing: border-box; position: relative; padding-left: calc(var(--cdm-w) + 16px); min-height: 520px; }
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .cdm-sidebar {
+	top: 0; bottom: auto; height: calc(100vh - 190px); min-height: 420px; max-height: 900px; border: 1px solid var(--cdm-border); border-radius: 6px;
+}
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .media-toolbar,
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .attachments,
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .attachments-wrapper,
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .uploader-inline { left: auto; }
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar:not(.has-load-more) .attachments,
+.media-frame.mode-grid .attachments-browser.cdm-collapsed:not(.has-load-more) .attachments { left: auto; }
+.media-frame.mode-grid .attachments-browser.cdm-collapsed { padding-left: 56px; }
+.media-frame.mode-grid .attachments-browser.cdm-collapsed > .cdm-sidebar { width: 40px; min-height: 0; height: 52px; }
+
+/* Pantallas estrechas: la barra se pliega por defecto vía JS; aquí sólo se recorta */
+@media (max-width: 782px) {
+	:root { --cdm-w: 200px; }
+}
+
+/* ================= Vista de lista ================= */
+
+.cdm-list-layout { display: flex; align-items: flex-start; gap: 16px; margin-top: 10px; }
+.cdm-list-side {
+	flex: none; width: var(--cdm-w); position: sticky; top: 42px; max-height: calc(100vh - 70px); display: flex; border: 1px solid var(--cdm-border);
+	border-radius: 6px; overflow: hidden;
+}
+.cdm-list-side .cdm-sidebar { flex: 1 1 auto; border-right: 0; max-height: calc(100vh - 72px); }
+.cdm-list-main { flex: 1 1 auto; min-width: 0; }
+.cdm-col-folder { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.cdm-col-none { color: var(--cdm-muted); }
+.column-cdm_folder { width: 14%; }
+.cdm-bulk-target select { max-width: 220px; }
+#the-list tr[draggable="true"] { cursor: grab; }
+
+@media (max-width: 960px) {
+	.cdm-list-layout { flex-direction: column; }
+	.cdm-list-side { position: static; width: 100%; max-height: 360px; }
+	.cdm-list-side .cdm-sidebar { width: 100%; }
+}
+
+/* ================= Página de ajustes ================= */
+
+.cdm-settings .cdm-callout {
+	margin: 14px 0 6px; padding: 12px 16px; max-width: 900px; border-left: 4px solid var(--cdm-accent); background: var(--cdm-accent-soft); border-radius: 0 4px 4px 0; color: #1e3a8a;
+}
+.cdm-settings h2 { margin-top: 28px; }
+.cdm-cat-table { max-width: 640px; }
+.cdm-cat-row { display: flex; align-items: center; gap: 8px; margin: 0; }
+.cdm-cat-row input[type=color] { width: 44px; height: 32px; padding: 2px; }
+
+/* ================= Página «Atelier de Medios»: cabecera y guía ================= */
+.cdm-hero {
+	display: flex; align-items: center; gap: 20px; margin: 16px 0 0; padding: 22px 26px; max-width: 1100px;
+	background: linear-gradient(120deg, #1e3a8a 0%, #2563eb 60%, #60a5fa 100%); border-radius: 12px 12px 0 0; color: #fff;
+}
+.cdm-hero img { flex: none; border-radius: 22px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
+.cdm-hero h1 { margin: 0 0 4px; padding: 0; color: #fff; font-size: 28px; letter-spacing: -.01em; }
+.cdm-hero h1 small { font-size: 12px; font-weight: 500; opacity: .75; margin-left: 6px; }
+.cdm-hero p { margin: 0; max-width: 640px; font-size: 14px; line-height: 1.5; opacity: .92; }
+.cdm-tabs { max-width: 1100px; margin: 0 0 18px; padding: 0 12px; background: #fff; border: 1px solid var(--cdm-border); border-top: 0; border-radius: 0 0 12px 12px; }
+.cdm-tabs .nav-tab { margin: 8px 6px 0 0; border: 0; background: transparent; font-size: 14px; }
+.cdm-tabs .nav-tab-active { background: var(--cdm-accent-soft); color: #1e3a8a; border-radius: 6px 6px 0 0; }
+.cdm-settings .cdm-callout { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.cdm-guide { max-width: 1100px; }
+.cdm-guide h2 { font-size: 18px; color: #1e3a8a; }
+.cdm-steps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.cdm-steps li { display: flex; gap: 12px; padding: 16px; background: #fff; border: 1px solid var(--cdm-border); border-radius: 10px; }
+.cdm-steps p, .cdm-card p { margin: 4px 0 0; color: var(--cdm-muted); line-height: 1.5; }
+.cdm-step-n { flex: none; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--cdm-accent); color: #fff; font-weight: 700; }
+.cdm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
+.cdm-card { padding: 16px 18px; background: #fff; border: 1px solid var(--cdm-border); border-left: 4px solid var(--cdm-accent); border-radius: 8px; }
+.cdm-card h3 { margin: 0; font-size: 14px; color: #1e3a8a; }
+.cdm-wide { max-width: 800px; font-size: 14px; line-height: 1.6; }
+.cdm-faq details { margin: 8px 0; padding: 10px 14px; background: #fff; border: 1px solid var(--cdm-border); border-radius: 8px; }
+.cdm-faq summary { cursor: pointer; font-weight: 600; }
+.cdm-faq p { margin: 8px 0 2px; color: var(--cdm-muted); }
+.cdm-settings > h2, .cdm-settings > form, .cdm-settings > .cdm-cat-table { max-width: 1100px; }
+.cdm-settings .cdm-hero, .cdm-settings .cdm-tabs, .cdm-settings .cdm-callout { box-sizing: border-box; width: 100%; max-width: 1100px; }
+.cdm-bar { height: 14px; max-width: 520px; background: #e4e7ec; border-radius: 999px; overflow: hidden; }
+.cdm-bar span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); transition: width .2s; }
+.cdm-import .button { margin-right: 6px; }
