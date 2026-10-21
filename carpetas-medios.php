@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Atelier de Medios — Carpetas para tu biblioteca
  * Description:       Organiza la biblioteca de medios en carpetas y subcarpetas, con categorías de carpeta, arrastrar y soltar y árbol integrado en la ventana de medios de Divi, Elementor, Gutenberg y cualquier constructor que use el selector nativo de WordPress.
- * Version:           1.2.0
+ * Version:           1.2.1
  * Requires at least: 5.6
  * Requires PHP:      7.2
  * Author:            Ismael Gonzalo Peña
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CDM_VERSION', '1.2.0' );
+define( 'CDM_VERSION', '1.2.1' );
 define( 'CDM_FILE', __FILE__ );
 define( 'CDM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CDM_URL', plugin_dir_url( __FILE__ ) );

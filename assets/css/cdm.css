@@ -7,6 +7,7 @@
 	--cdm-text: #1d2327;
 	--cdm-muted: #646970;
 	--cdm-bg: #f6f7f9;
+	--cdm-gh: min(900px, max(420px, calc(100vh - 190px)));
 }
 
 .cdm-sidebar, .cdm-sidebar * { box-sizing: border-box; }
@@ -159,9 +160,9 @@ body.cdm-dragging .uploader-editor { display: none !important; pointer-events: n
 .attachments-browser.cdm-collapsed:not(.has-load-more) .attachments { left: 40px; }
 
 /* Rejilla de Medios (upload.php, modo cuadrícula): el contenedor no es absoluto */
-.media-frame.mode-grid .attachments-browser.cdm-has-sidebar { box-sizing: border-box; position: relative; padding-left: calc(var(--cdm-w) + 16px); min-height: 520px; }
+.media-frame.mode-grid .attachments-browser.cdm-has-sidebar { box-sizing: border-box; position: relative; padding-left: calc(var(--cdm-w) + 16px); min-height: var(--cdm-gh); }
 .media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .cdm-sidebar {
-	top: 0; bottom: auto; height: calc(100vh - 190px); min-height: 420px; max-height: 900px; border: 1px solid var(--cdm-border); border-radius: 6px;
+	top: 0; bottom: auto; height: var(--cdm-gh); border: 1px solid var(--cdm-border); border-radius: 6px;
 }
 .media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .media-toolbar,
 .media-frame.mode-grid .attachments-browser.cdm-has-sidebar > .attachments,
