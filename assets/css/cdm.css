@@ -253,3 +253,18 @@ body.cdm-dragging .uploader-editor { display: none !important; pointer-events: n
 .cdm-imp-bar span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); transition: width .2s; }
 .cdm-imp-txt { color: var(--cdm-muted); margin-top: 4px; }
 .cdm-imp-list { margin: 6px 0 0; padding-left: 16px; max-height: 120px; overflow: auto; color: #b32d2e; font-size: 12px; }
+
+/* Novedades */
+.cdm-rel { max-width: 860px; margin: 0 0 14px; padding: 14px 18px; background: #fff; border: 1px solid var(--cdm-border); border-radius: 8px; }
+.cdm-rel.is-current { border-color: var(--cdm-accent); box-shadow: 0 0 0 3px var(--cdm-accent-soft); }
+.cdm-rel header { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.cdm-rel h3 { margin: 0; font-size: 16px; color: #1e40af; }
+.cdm-rel time { color: var(--cdm-muted); font-size: 12px; }
+.cdm-cur { padding: 2px 9px; border-radius: 999px; background: var(--cdm-accent); color: #fff; font-size: 11px; font-weight: 600; }
+.cdm-rel ul { margin: 0; padding: 0; list-style: none; }
+.cdm-rel li { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid #eef0f3; }
+.cdm-rel li:first-child { border-top: 0; }
+.cdm-tag { flex: none; min-width: 76px; padding: 2px 8px; border-radius: 4px; text-align: center; font-size: 11px; font-weight: 600; }
+.cdm-tag.is-new { background: #e2f4e8; color: #2f855a; }
+.cdm-tag.is-imp { background: #e3eefb; color: #1e40af; }
+.cdm-tag.is-fix { background: #fff4d6; color: #b7791f; }

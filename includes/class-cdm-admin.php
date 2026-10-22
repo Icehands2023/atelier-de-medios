@@ -221,7 +221,7 @@ class CDM_Admin {
 		$tot   = CDM_Folders::counts();
 		$n_f   = count( CDM_Folders::folders() );
 		$tab   = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'guia'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$tab   = in_array( $tab, array( 'ajustes', 'importar' ), true ) ? $tab : 'guia';
+		$tab   = in_array( $tab, array( 'ajustes', 'importar', 'novedades' ), true ) ? $tab : 'guia';
 		?>
 		<div class="wrap cdm-settings">
 			<div class="cdm-hero">
@@ -235,6 +235,7 @@ class CDM_Admin {
 				<a class="nav-tab <?php echo 'guia' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'upload.php?page=carpetas-medios&tab=guia' ) ); ?>"><?php esc_html_e( 'Guía de uso', 'carpetas-medios' ); ?></a>
 				<a class="nav-tab <?php echo 'ajustes' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'upload.php?page=carpetas-medios&tab=ajustes' ) ); ?>"><?php esc_html_e( 'Ajustes y categorías', 'carpetas-medios' ); ?></a>
 				<a class="nav-tab <?php echo 'importar' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'upload.php?page=carpetas-medios&tab=importar' ) ); ?>"><?php esc_html_e( 'Importar desde FileBird', 'carpetas-medios' ); ?></a>
+				<a class="nav-tab <?php echo 'novedades' === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( admin_url( 'upload.php?page=carpetas-medios&tab=novedades' ) ); ?>"><?php esc_html_e( 'Novedades', 'carpetas-medios' ); ?></a>
 			</nav>
 
 			<?php if ( 'err' === $msg && $err ) : ?>
@@ -247,6 +248,8 @@ class CDM_Admin {
 				<?php self::render_guide( $n_f, $tot ); ?>
 			<?php elseif ( 'importar' === $tab ) : ?>
 				<?php CDM_Import::render_tab(); ?>
+			<?php elseif ( 'novedades' === $tab ) : ?>
+				<?php self::render_changelog(); ?>
 			<?php else : ?>
 			<div class="cdm-callout">
 				<?php
@@ -337,6 +340,68 @@ class CDM_Admin {
 				<button type="submit" class="button"><?php esc_html_e( 'Recalcular contadores de carpetas', 'carpetas-medios' ); ?></button>
 			</form>
 			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/* ------------------------------------------------------------------ Novedades */
+
+	/** Historial de versiones, de la más reciente a la más antigua. Tipos: new (Nuevo), imp (Mejora), fix (Corrección). */
+	private static function changelog() {
+		return array(
+			array( '1.4.0', '2026-10-22', array(
+				array( 'new', __( 'Nueva pestaña «Novedades» con el historial de cambios de las últimas versiones.', 'carpetas-medios' ) ),
+			) ),
+			array( '1.3.0', '2026-10-22', array(
+				array( 'new', __( 'Importar carpetas del equipo: arrastra una carpeta de tu ordenador o de una unidad externa sobre el árbol y se crean las carpetas y subcarpetas con sus mismos nombres, subiendo cada imagen a su carpeta.', 'carpetas-medios' ) ),
+				array( 'imp', __( 'Panel de progreso durante la importación, con resumen de archivos subidos, carpetas nuevas, omitidos y fallidos.', 'carpetas-medios' ) ),
+				array( 'imp', __( 'El autor del plugin figura como Ismael GPH.', 'carpetas-medios' ) ),
+			) ),
+			array( '1.2.1', '2026-10-21', array(
+				array( 'fix', __( 'En Medios (rejilla), el árbol de carpetas se recortaba por abajo al abrir una carpeta con pocos archivos.', 'carpetas-medios' ) ),
+			) ),
+			array( '1.2.0', '2026-10-21', array(
+				array( 'new', __( 'Actualizaciones desde la página de Plugins de WordPress, a través de las Releases de GitHub.', 'carpetas-medios' ) ),
+				array( 'new', __( 'Enlace «Buscar actualizaciones» en la fila del plugin para comprobar de inmediato si hay una versión nueva.', 'carpetas-medios' ) ),
+			) ),
+			array( '1.1.1', '2026-10-21', array(
+				array( 'fix', __( 'Las miniaturas se solapaban con la barra de carpetas en la ventana de medios cuando la lista era corta.', 'carpetas-medios' ) ),
+			) ),
+			array( '1.1.0', '2026-10-21', array(
+				array( 'new', __( 'Importador desde FileBird: trae carpetas, subcarpetas y la ubicación de cada archivo sin modificar FileBird.', 'carpetas-medios' ) ),
+			) ),
+			array( '1.0.0', '2026-10-20', array(
+				array( 'new', __( 'Primera versión: carpetas y subcarpetas, categorías con color, arrastrar y soltar y árbol integrado en la ventana de medios de Divi, Elementor y Gutenberg.', 'carpetas-medios' ) ),
+			) ),
+		);
+	}
+
+	private static function render_changelog() {
+		$labels = array(
+			'new' => __( 'Nuevo', 'carpetas-medios' ),
+			'imp' => __( 'Mejora', 'carpetas-medios' ),
+			'fix' => __( 'Corrección', 'carpetas-medios' ),
+		);
+		?>
+		<div class="cdm-guide cdm-log">
+			<h2><?php esc_html_e( 'Novedades de las últimas versiones', 'carpetas-medios' ); ?></h2>
+			<p class="cdm-wide"><?php esc_html_e( 'Estos son los cambios de las cuatro últimas revisiones: lo nuevo, las mejoras y las correcciones.', 'carpetas-medios' ); ?></p>
+			<?php foreach ( array_slice( self::changelog(), 0, 4 ) as $rel ) : ?>
+				<section class="cdm-rel<?php echo CDM_VERSION === $rel[0] ? ' is-current' : ''; ?>">
+					<header>
+						<h3><?php echo esc_html( 'v' . $rel[0] ); ?></h3>
+						<time datetime="<?php echo esc_attr( $rel[1] ); ?>"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $rel[1] ) ) ); ?></time>
+						<?php if ( CDM_VERSION === $rel[0] ) : ?>
+							<span class="cdm-cur"><?php esc_html_e( 'Versión instalada', 'carpetas-medios' ); ?></span>
+						<?php endif; ?>
+					</header>
+					<ul>
+						<?php foreach ( $rel[2] as $it ) : ?>
+							<li><span class="cdm-tag is-<?php echo esc_attr( $it[0] ); ?>"><?php echo esc_html( $labels[ $it[0] ] ); ?></span><span><?php echo esc_html( $it[1] ); ?></span></li>
+						<?php endforeach; ?>
+					</ul>
+				</section>
+			<?php endforeach; ?>
 		</div>
 		<?php
 	}

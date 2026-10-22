@@ -3,7 +3,7 @@ Tags: media, folders, media library, divi, elementor
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 
 Organiza la biblioteca de medios en carpetas y subcarpetas, también dentro de la ventana de medios de Divi, Elementor y Gutenberg.
@@ -29,6 +29,9 @@ Eliminar una carpeta NUNCA borra archivos: pasan a «Sin carpeta» y las subcarp
 3. Guía y ajustes en Medios → Atelier de Medios.
 
 == Changelog ==
+
+= 1.4.0 =
+* Nuevo: pestaña «Novedades» con el historial de las últimas versiones.
 
 = 1.3.0 =
 * Nuevo: arrastra carpetas desde tu equipo al árbol y se importan con su estructura y nombres (subcarpetas incluidas).
