@@ -240,3 +240,16 @@ body.cdm-dragging .uploader-editor { display: none !important; pointer-events: n
 .cdm-bar { height: 14px; max-width: 520px; background: #e4e7ec; border-radius: 999px; overflow: hidden; }
 .cdm-bar span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); transition: width .2s; }
 .cdm-import .button { margin-right: 6px; }
+
+/* Panel de importación de carpetas */
+.cdm-imp {
+	position: fixed; right: 20px; bottom: 20px; width: 340px; max-width: calc(100vw - 40px); padding: 12px 14px; border-radius: 8px;
+	background: #fff; border: 1px solid var(--cdm-border); border-left: 4px solid var(--cdm-accent); box-shadow: 0 6px 24px rgba(0,0,0,.18);
+	font: 13px/1.4 -apple-system, "Segoe UI", sans-serif; color: var(--cdm-text);
+}
+.cdm-imp.is-error { border-left-color: #b32d2e; }
+.cdm-imp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cdm-imp-bar { height: 8px; margin: 8px 0; border-radius: 999px; background: #e4e7ec; overflow: hidden; }
+.cdm-imp-bar span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); transition: width .2s; }
+.cdm-imp-txt { color: var(--cdm-muted); margin-top: 4px; }
+.cdm-imp-list { margin: 6px 0 0; padding-left: 16px; max-height: 120px; overflow: auto; color: #b32d2e; font-size: 12px; }

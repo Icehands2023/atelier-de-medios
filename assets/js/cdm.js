@@ -650,6 +650,7 @@
 				coll.props.set({ cdm_folder: id === 'all' ? null : String(id), cdm_ts: id === 'all' ? null : Date.now() });
 			},
 			onMoved: function () { if (sb.current !== 'all') { refreshCollection(coll); } },
+			onImported: function () { refreshCollection(coll); },
 			onUploaded: function (att, folder) {
 				// WordPress no añade las subidas a consultas con filtros propios: lo hacemos aquí.
 				if (!att || sb.current === 'all') { return; }
@@ -664,6 +665,7 @@
 		// Subvista real: así sobrevive a los render() de la ventana de medios.
 		var host = new wp.Backbone.View({ el: sb.$el[0] });
 		view.views.add(host);
+		initFolderImport();
 		view.$el.addClass('cdm-has-sidebar').toggleClass('cdm-collapsed', collapsed);
 
 		// Arrastrar adjuntos hacia el árbol.
@@ -726,6 +728,229 @@
 				this.uploader.bind('UploadComplete', function () { api('tree'); });
 			};
 		}
+	}
+
+	/* ------------------------------------------------------------ importar carpetas del equipo (arrastrar y soltar) */
+
+	var importing = false;
+
+	function uploadSettings() {
+		var s = window._wpPluploadSettings;
+		return (s && s.defaults && s.defaults.url) ? s.defaults : null;
+	}
+
+	function allowedExts() {
+		var u = uploadSettings();
+		try {
+			var ext = u.filters.mime_types[0].extensions;
+			return ext ? ext.toLowerCase().split(',') : null;
+		} catch (e) { return null; }
+	}
+
+	function maxBytes() {
+		var u = uploadSettings();
+		try { return parseInt(u.filters.max_file_size, 10) || 0; } catch (e) { return 0; }
+	}
+
+	function readAllEntries(reader) {
+		var d = $.Deferred(), all = [];
+		(function next() {
+			reader.readEntries(function (batch) {
+				if (!batch.length) { d.resolve(all); return; }
+				all = all.concat(Array.prototype.slice.call(batch));
+				next();
+			}, function () { d.resolve(all); });
+		})();
+		return d.promise();
+	}
+
+	// Recorre las entradas soltadas: llena out.files [{dir, file}] y out.dirs [ruta].
+	function walk(entry, segs, out) {
+		var d = $.Deferred();
+		if (entry.isFile) {
+			entry.file(function (f) { out.files.push({ dir: segs.join('/'), file: f }); d.resolve(); }, function () { d.resolve(); });
+		} else if (entry.isDirectory) {
+			var mine = segs.concat(entry.name);
+			out.dirs.push(mine.join('/'));
+			readAllEntries(entry.createReader()).done(function (list) {
+				var chain = $.Deferred().resolve();
+				list.forEach(function (child) { chain = chain.then(function () { return walk(child, mine, out); }); });
+				chain.always(function () { d.resolve(); });
+			});
+		} else { d.resolve(); }
+		return d.promise();
+	}
+
+	function progressPanel() {
+		var $p = $('.cdm-imp');
+		if ($p.length) { return $p; }
+		$p = $('<div class="cdm-imp" role="status">').css('z-index', Z)
+			.append('<div class="cdm-imp-head"><strong></strong><button type="button" class="cdm-ibtn cdm-imp-x" aria-label="' + $('<i>').text(T.impClose || '').html() + '">×</button></div>')
+			.append('<div class="cdm-imp-bar"><span></span></div><div class="cdm-imp-txt"></div><ul class="cdm-imp-list"></ul>')
+			.appendTo(document.body);
+		$p.on('click', '.cdm-imp-x', function () { if (!importing) { $p.remove(); } });
+		return $p;
+	}
+
+	function uploadOne(item, folderId, up) {
+		var d = $.Deferred(), fd = new FormData();
+		fd.append('name', item.file.name);
+		fd.append('action', 'upload-attachment');
+		fd.append('_wpnonce', up.multipart_params._wpnonce);
+		if (folderId) { fd.append('cdm_folder', folderId); }
+		fd.append('async-upload', item.file, item.file.name);
+		$.ajax({ url: up.url, type: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' })
+			.done(function (r) {
+				if (r && r.success) { d.resolve(); } else { d.reject((r && r.data && r.data.message) || T.error); }
+			})
+			.fail(function (x) { d.reject((x.responseJSON && x.responseJSON.data && x.responseJSON.data.message) || x.statusText || T.error); });
+		return d.promise();
+	}
+
+	function runImport(parentId, entries) {
+		if (importing) { return; }
+		var up = uploadSettings();
+		if (!up || !up.multipart_params || !up.multipart_params._wpnonce) { toast(T.impNoUploader, true); return; }
+		importing = true;
+		var $p = progressPanel();
+		$p.find('.cdm-imp-head strong').text(T.impReading);
+		$p.find('.cdm-imp-bar span').css('width', '0');
+		$p.find('.cdm-imp-txt, .cdm-imp-list').empty();
+
+		var out = { files: [], dirs: [] }, chain = $.Deferred().resolve();
+		entries.forEach(function (en) { chain = chain.then(function () { return walk(en, [], out); }); });
+
+		chain.always(function () {
+			// Filtrado: ocultos, tipos no permitidos, tamaño.
+			var exts = allowedExts(), max = maxBytes(), skipped = 0;
+			var files = out.files.filter(function (it) {
+				var n = it.file.name, ext = (n.split('.').pop() || '').toLowerCase();
+				var ok = n.charAt(0) !== '.' && n.indexOf('.') > -1 && (!exts || exts.indexOf(ext) > -1) && (!max || it.file.size <= max);
+				if (!ok) { skipped++; }
+				return ok;
+			});
+			var dirs = out.dirs;
+
+			function finish(msg, isErr) {
+				importing = false;
+				$p.find('.cdm-imp-head strong').text(T.impDone);
+				if (msg) { $p.find('.cdm-imp-txt').text(msg); }
+				if (isErr) { $p.addClass('is-error'); }
+			}
+
+			if (!files.length && !dirs.length) { importing = false; $p.remove(); toast(T.impNothing, true); return; }
+			if (dirs.length && !C.canManage) { importing = false; $p.remove(); toast(T.impNoManage, true); return; }
+
+			var treeDone = dirs.length ? api('import_tree', { parent: parentId, paths: dirs }) : $.Deferred().resolve({ map: {}, created: 0 }).promise();
+			treeDone.fail(function (m) { finish(m, true); }).done(function (r) {
+				var map = r.map || {}, created = r.created || 0;
+				var total = files.length, done = 0, ok = 0, failed = [], idx = 0, running = 0, LIMIT = 3;
+
+				function paint() {
+					$p.find('.cdm-imp-head strong').text(fmt2(T.impUploading, done, total));
+					$p.find('.cdm-imp-bar span').css('width', (total ? Math.round(done / total * 100) : 100) + '%');
+				}
+				function end() {
+					var txt = fmt2(T.impSummary, ok, created);
+					if (skipped) { txt += ' · ' + fmt(T.impSkipped, skipped); }
+					finish(txt, false);
+					$p.find('.cdm-imp-bar span').css('width', '100%');
+					if (failed.length) {
+						$p.find('.cdm-imp-list').before($('<div class="cdm-imp-txt">').text(fmt(T.impFailed, failed.length)));
+						failed.slice(0, 15).forEach(function (f) { $('<li>').text(f).appendTo($p.find('.cdm-imp-list')); });
+					}
+					api('tree');
+					sidebars.forEach(function (s) { if (s.opts.onImported) { s.opts.onImported(); } });
+				}
+				function pump() {
+					while (running < LIMIT && idx < total) {
+						(function (it) {
+							running++;
+							var fid = it.dir ? (map[it.dir] || parentId) : parentId;
+							uploadOne(it, fid, up)
+								.done(function () { ok++; })
+								.fail(function (m) { failed.push(it.file.name + ' — ' + m); })
+								.always(function () { running--; done++; paint(); if (done >= total) { end(); } else { pump(); } });
+						})(files[idx++]);
+					}
+				}
+				paint();
+				if (!total) { end(); } else { pump(); }
+			});
+		});
+	}
+
+	function fmt2(str, a, b) { return String(str).replace('%1$d', a).replace('%2$d', b); }
+
+	var overTimer = null;
+
+	function sidebarHit(e) {
+		var els = document.elementsFromPoint ? document.elementsFromPoint(e.clientX, e.clientY) : [];
+		for (var i = 0; i < els.length; i++) {
+			var $t = $(els[i]).closest('.cdm-tree');
+			if ($t.length) {
+				var $row = $(els[i]).closest('.cdm-row');
+				var raw = $row.length ? $row.closest('.cdm-node').attr('data-id') : 'all';
+				return { $row: $row, parent: (raw === 'all' || raw === 'none') ? 0 : (parseInt(raw, 10) || 0) };
+			}
+		}
+		return null;
+	}
+
+	function externalFiles(e) {
+		var dt = e.dataTransfer;
+		if (!dt || drag || !dt.types) { return false; }
+		return Array.prototype.indexOf.call(dt.types, 'Files') > -1;
+	}
+
+	function hasDirectory(dt) {
+		if (!dt.items) { return false; }
+		for (var i = 0; i < dt.items.length; i++) {
+			var en = dt.items[i].webkitGetAsEntry ? dt.items[i].webkitGetAsEntry() : null;
+			if (en && en.isDirectory) { return true; }
+		}
+		return false;
+	}
+
+	function initFolderImport() {
+		if (window.cdmImportBound) { return; }
+		window.cdmImportBound = true;
+
+		window.addEventListener('dragover', function (e) {
+			if (!sidebars.length || !externalFiles(e)) { return; }
+			var hit = sidebarHit(e);
+			$('.cdm-row.is-drop').removeClass('is-drop');
+			clearTimeout(overTimer);
+			if (!hit) { $('body').removeClass('cdm-dragging'); return; }
+			$('body').addClass('cdm-dragging'); // oculta el aviso de WordPress mientras se está sobre el árbol.
+			e.preventDefault();
+			e.stopPropagation();
+			e.dataTransfer.dropEffect = 'copy';
+			if (hit.$row.length) { hit.$row.addClass('is-drop'); }
+			overTimer = setTimeout(function () { $('.cdm-row.is-drop').removeClass('is-drop'); $('body').removeClass('cdm-dragging'); }, 400);
+		}, true);
+
+		window.addEventListener('drop', function (e) {
+			if (!sidebars.length || !externalFiles(e)) { return; }
+			var hit = sidebarHit(e);
+			var dirs = hasDirectory(e.dataTransfer);
+			// Sobre el árbol: se importa en esa carpeta. Fuera del árbol: sólo se intercepta si se sueltan carpetas.
+			if (!hit && !dirs) { return; }
+			e.preventDefault();
+			e.stopPropagation();
+			clearTimeout(overTimer);
+			$('.cdm-row.is-drop').removeClass('is-drop');
+			$('body').removeClass('cdm-dragging');
+			var parent = hit ? hit.parent : uploadFolder();
+			var entries = [], items = e.dataTransfer.items;
+			for (var i = 0; items && i < items.length; i++) {
+				if (items[i].kind !== 'file') { continue; }
+				var en = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
+				if (en) { entries.push(en); }
+			}
+			if (!entries.length) { return; }
+			runImport(parent, entries);
+		}, true);
 	}
 
 	/* ------------------------------------------------------------ vista de lista */

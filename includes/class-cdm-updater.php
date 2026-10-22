@@ -89,7 +89,7 @@ class CDM_Updater {
 			'name'          => 'Atelier de Medios',
 			'slug'          => 'carpetas-medios',
 			'version'       => $r['version'],
-			'author'        => 'Ismael Gonzalo Peña',
+			'author'        => 'Ismael GPH',
 			'homepage'      => $r['url'],
 			'download_link' => $r['zip'],
 			'sections'      => array( 'changelog' => wpautop( esc_html( $r['notes'] ) ) ),

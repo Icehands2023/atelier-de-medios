@@ -151,7 +151,7 @@ class CDM_Folders {
 		return $e;
 	}
 
-	private static function clean_name( $name ) {
+	public static function clean_name( $name ) {
 		$name = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( (string) $name ) ) );
 		if ( function_exists( 'mb_substr' ) ) {
 			$name = mb_substr( $name, 0, 120 );

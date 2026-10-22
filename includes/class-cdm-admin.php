@@ -120,6 +120,16 @@ class CDM_Admin {
 			'dragFile'       => __( '1 archivo', 'carpetas-medios' ),
 			'moveHere'       => __( 'Mover a esta carpeta', 'carpetas-medios' ),
 			'uploadTo'       => __( 'Las subidas irán a:', 'carpetas-medios' ),
+			'impReading'     => __( 'Leyendo carpetas…', 'carpetas-medios' ),
+			'impUploading'   => __( 'Subiendo %1$d de %2$d', 'carpetas-medios' ),
+			'impDone'        => __( 'Importación completada', 'carpetas-medios' ),
+			'impSummary'     => __( '%1$d archivos subidos · %2$d carpetas nuevas', 'carpetas-medios' ),
+			'impFailed'      => __( 'No se han podido subir %d archivos:', 'carpetas-medios' ),
+			'impSkipped'     => __( 'Omitidos (tipo no permitido o demasiado grandes): %d', 'carpetas-medios' ),
+			'impNoManage'    => __( 'No tienes permiso para crear carpetas, así que no se puede importar una estructura.', 'carpetas-medios' ),
+			'impNothing'     => __( 'No hay archivos que importar.', 'carpetas-medios' ),
+			'impNoUploader'  => __( 'El cargador de WordPress no está disponible en esta pantalla.', 'carpetas-medios' ),
+			'impClose'       => __( 'Cerrar', 'carpetas-medios' ),
 		);
 	}
 
@@ -347,11 +357,13 @@ class CDM_Admin {
 			array( __( 'Arrastrar y soltar', 'carpetas-medios' ), __( 'Archivos sobre carpetas y carpetas sobre carpetas. Soltar sobre «Todos los archivos» lleva una carpeta a la raíz; sobre «Sin carpeta» saca archivos de su carpeta.', 'carpetas-medios' ) ),
 			array( __( 'Subidas a la carpeta activa', 'carpetas-medios' ), __( 'Lo que subas con una carpeta abierta se guarda ahí. El pie del panel te recuerda el destino.', 'carpetas-medios' ) ),
 			array( __( 'Buscador de carpetas', 'carpetas-medios' ), __( 'Escribe en «Buscar carpeta…» y el árbol se reduce a las coincidencias, con su ruta.', 'carpetas-medios' ) ),
+			array( __( 'Importar carpetas del equipo', 'carpetas-medios' ), __( 'Arrastra una carpeta de tu ordenador o de una unidad externa sobre el árbol: se crean las carpetas y subcarpetas con sus mismos nombres y se suben las imágenes a cada una. Si la sueltas sobre una carpeta, se crea dentro de ella.', 'carpetas-medios' ) ),
 			array( __( 'Vista de lista', 'carpetas-medios' ), __( 'Columna «Carpeta» y acción masiva «Mover a carpeta…» para reorganizar muchos archivos a la vez.', 'carpetas-medios' ) ),
 			array( __( 'Detalle del archivo', 'carpetas-medios' ), __( 'En el panel de detalles de cualquier archivo, el campo «Carpeta» permite cambiarlo sin salir de la ventana.', 'carpetas-medios' ) ),
 			array( __( 'Contadores', 'carpetas-medios' ), __( 'Cada carpeta, «Todos los archivos» y «Sin carpeta» muestran cuántos archivos contienen.', 'carpetas-medios' ) ),
 		);
 		$faq = array(
+			array( __( '¿Qué pasa si arrastro una carpeta que ya existe?', 'carpetas-medios' ), __( 'Se reutilizan las carpetas con el mismo nombre y ubicación, sin duplicarlas. Los archivos se suben de nuevo: WordPress no detecta duplicados, así que evita repetir la misma carpeta.', 'carpetas-medios' ) ),
 			array( __( '¿Puedo traer mis carpetas de FileBird?', 'carpetas-medios' ), __( 'Sí. Ve a la pestaña «Importar desde FileBird», analiza e importa. Se conserva la jerarquía y la ubicación de cada archivo; FileBird no se modifica.', 'carpetas-medios' ) ),
 			array( __( '¿Si borro una carpeta pierdo imágenes?', 'carpetas-medios' ), __( 'No. Los archivos pasan a «Sin carpeta» y las subcarpetas suben un nivel.', 'carpetas-medios' ) ),
 			array( __( '¿Cambian las URL de mis imágenes?', 'carpetas-medios' ), __( 'No. Las carpetas son una capa de organización; los archivos siguen donde estaban en el servidor.', 'carpetas-medios' ) ),

@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class CDM_Ajax {
 
 	public static function init() {
-		foreach ( array( 'tree', 'create', 'rename', 'move_folder', 'delete', 'set_cat', 'assign', 'cat_save', 'cat_delete' ) as $a ) {
+		foreach ( array( 'tree', 'create', 'rename', 'move_folder', 'delete', 'set_cat', 'assign', 'cat_save', 'cat_delete', 'import_tree' ) as $a ) {
 			add_action( 'wp_ajax_cdm_' . $a, array( __CLASS__, $a ) );
 		}
 	}
@@ -79,5 +79,58 @@ class CDM_Ajax {
 	public static function cat_delete() {
 		self::guard( true );
 		self::done( CDM_Folders::delete_category( absint( self::req( 'id', 0 ) ) ) );
+	}
+
+	/**
+	 * Crea (o reutiliza) la estructura de carpetas de una carpeta arrastrada desde el equipo.
+	 * `paths`: rutas relativas tipo «Cliente/Fotos/2026». Devuelve `map`: ruta => ID de carpeta.
+	 */
+	public static function import_tree() {
+		self::guard( true );
+		$parent = absint( self::req( 'parent', 0 ) );
+		if ( $parent && ! CDM_Folders::exists( $parent ) ) {
+			wp_send_json_error( array( 'message' => __( 'La carpeta de destino no existe.', 'carpetas-medios' ) ), 400 );
+		}
+		$paths = array_values( array_unique( array_filter( array_map( 'strval', (array) self::req( 'paths', array() ) ), 'strlen' ) ) );
+		if ( count( $paths ) > 3000 ) {
+			wp_send_json_error( array( 'message' => __( 'Demasiadas carpetas en una sola importación (máximo 3000).', 'carpetas-medios' ) ), 400 );
+		}
+		usort( $paths, function ( $a, $b ) {
+			return substr_count( $a, '/' ) - substr_count( $b, '/' );
+		} );
+
+		$index = array(); // [padre][nombre en minúsculas] => id.
+		foreach ( CDM_Folders::folders() as $f ) {
+			$index[ $f['parent'] ][ mb_strtolower( $f['name'] ) ] = $f['id'];
+		}
+		$map     = array( '' => $parent );
+		$created = 0;
+		foreach ( $paths as $path ) {
+			$cur = '';
+			foreach ( explode( '/', $path ) as $seg ) {
+				$key = '' === $cur ? $seg : $cur . '/' . $seg;
+				if ( isset( $map[ $key ] ) ) {
+					$cur = $key;
+					continue;
+				}
+				$pid   = $map[ $cur ];
+				$name  = CDM_Folders::clean_name( $seg );
+				$lname = mb_strtolower( $name );
+				if ( isset( $index[ $pid ][ $lname ] ) ) {
+					$id = $index[ $pid ][ $lname ];
+				} else {
+					$id = CDM_Folders::create( $name, $pid );
+					if ( is_wp_error( $id ) ) {
+						wp_send_json_error( array( 'message' => $id->get_error_message() ), 400 );
+					}
+					$index[ $pid ][ $lname ] = $id;
+					$created++;
+				}
+				$map[ $key ] = $id;
+				$cur         = $key;
+			}
+		}
+		unset( $map[''] );
+		self::done( true, array( 'map' => $map, 'created' => $created ) );
 	}
 }
