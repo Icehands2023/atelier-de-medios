@@ -123,6 +123,17 @@ class CDM_Admin {
 			'dragFile'       => __( '1 archivo', 'atelier-de-medios' ),
 			'moveHere'       => __( 'Mover a esta carpeta', 'atelier-de-medios' ),
 			'uploadTo'       => __( 'Las subidas irán a:', 'atelier-de-medios' ),
+			'selectMode'     => __( 'Seleccionar varias carpetas', 'atelier-de-medios' ),
+			/* translators: %d: number of selected folders. */
+			'selCount'       => __( '%d seleccionadas', 'atelier-de-medios' ),
+			'selAll'         => __( 'Todas', 'atelier-de-medios' ),
+			'selClear'       => __( 'Cancelar', 'atelier-de-medios' ),
+			/* translators: %d: number of folders to delete. */
+			'confirmDelMany' => __( '¿Eliminar %d carpetas? Los archivos NO se borran: pasarán a «Sin carpeta». Las subcarpetas que no estén seleccionadas subirán un nivel.', 'atelier-de-medios' ),
+			/* translators: %d: number of folders deleted. */
+			'deletedMany'    => __( '%d carpetas eliminadas', 'atelier-de-medios' ),
+			/* translators: %d: number of selected folders. */
+			'menuDelMany'    => __( 'Eliminar %d carpetas seleccionadas', 'atelier-de-medios' ),
 			'impReading'     => __( 'Leyendo carpetas…', 'atelier-de-medios' ),
 			/* translators: 1: files uploaded so far, 2: total files. */
 			'impUploading'   => __( 'Subiendo %1$d de %2$d', 'atelier-de-medios' ),
@@ -356,6 +367,9 @@ class CDM_Admin {
 	/** Historial de versiones, de la más reciente a la más antigua. Tipos: new (Nuevo), imp (Mejora), fix (Corrección). */
 	private static function changelog() {
 		return array(
+			array( '1.6.0', '2026-10-22', array(
+				array( 'new', __( 'Selección múltiple de carpetas: Mayús+clic para un rango, Ctrl/Cmd+clic para carpetas sueltas, o el modo de casillas del encabezado. Elimina todas las seleccionadas de una vez (los archivos no se borran).', 'atelier-de-medios' ) ),
+			) ),
 			array( '1.5.0', '2026-10-22', array(
 				array( 'imp', __( 'Código revisado con Plugin Check, la herramienta oficial de WordPress: textos traducibles, saneado de datos de entrada y consultas a la base de datos documentadas.', 'atelier-de-medios' ) ),
 				array( 'imp', __( 'Preparado para el directorio oficial de plugins de WordPress.org (edición sin actualizador propio).', 'atelier-de-medios' ) ),
@@ -429,6 +443,7 @@ class CDM_Admin {
 		);
 		$features = array(
 			array( __( 'Carpetas y subcarpetas', 'atelier-de-medios' ), __( 'Todas las que quieras, en el nivel que quieras. Son virtuales: tus archivos y sus URL no cambian nunca.', 'atelier-de-medios' ) ),
+			array( __( 'Selección múltiple', 'atelier-de-medios' ), __( 'Mayús+clic selecciona un rango, Ctrl/Cmd+clic carpetas sueltas, o activa el modo de casillas con el icono del encabezado. Después pulsa «Eliminar» (o Supr). Esc cancela.', 'atelier-de-medios' ) ),
 			array( __( 'Menú contextual', 'atelier-de-medios' ), __( 'Clic derecho (o botón «⋯») sobre una carpeta: nueva subcarpeta, renombrar, cambiar categoría, mover y eliminar. F2 renombra.', 'atelier-de-medios' ) ),
 			array( __( 'Categorías con color', 'atelier-de-medios' ), __( 'Agrupa carpetas por Cliente, Proyecto, Marca… Cada categoría tiñe sus carpetas y las pastillas sobre el árbol filtran por ella.', 'atelier-de-medios' ) ),
 			array( __( 'Arrastrar y soltar', 'atelier-de-medios' ), __( 'Archivos sobre carpetas y carpetas sobre carpetas. Soltar sobre «Todos los archivos» lleva una carpeta a la raíz; sobre «Sin carpeta» saca archivos de su carpeta.', 'atelier-de-medios' ) ),

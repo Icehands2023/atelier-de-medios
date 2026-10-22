@@ -268,3 +268,17 @@ body.cdm-dragging .uploader-editor { display: none !important; pointer-events: n
 .cdm-tag.is-new { background: #e2f4e8; color: #2f855a; }
 .cdm-tag.is-imp { background: #e3eefb; color: #1e40af; }
 .cdm-tag.is-fix { background: #fff4d6; color: #b7791f; }
+
+/* Selección múltiple de carpetas */
+.cdm-selmode.is-on { background: var(--cdm-accent-soft); color: var(--cdm-accent); }
+.cdm-chk { flex: none; margin: 0 2px 0 0 !important; width: 15px; height: 15px; min-width: 15px; }
+.cdm-row.is-sel { background: #dbe7ff; border-color: #9db8f2; }
+.cdm-selbar {
+	display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--cdm-border);
+	background: var(--cdm-accent-soft);
+}
+.cdm-sel-n { flex: 1 1 100%; font-weight: 600; color: #1e40af; }
+.cdm-selbar button {
+	padding: 3px 10px; border: 1px solid var(--cdm-border); border-radius: 4px; background: #fff; color: var(--cdm-text); cursor: pointer; font-size: 12px;
+}
+.cdm-selbar .cdm-sel-del { margin-left: auto; border-color: #b32d2e; background: #b32d2e; color: #fff; font-weight: 600; }

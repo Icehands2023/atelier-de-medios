@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class CDM_Ajax {
 
 	public static function init() {
-		foreach ( array( 'tree', 'create', 'rename', 'move_folder', 'delete', 'set_cat', 'assign', 'cat_save', 'cat_delete', 'import_tree' ) as $a ) {
+		foreach ( array( 'tree', 'create', 'rename', 'move_folder', 'delete', 'set_cat', 'assign', 'cat_save', 'cat_delete', 'import_tree', 'delete_many' ) as $a ) {
 			add_action( 'wp_ajax_cdm_' . $a, array( __CLASS__, $a ) );
 		}
 	}
@@ -132,5 +132,34 @@ class CDM_Ajax {
 		}
 		unset( $map[''] );
 		self::done( true, array( 'map' => $map, 'created' => $created ) );
+	}
+
+	/** Elimina varias carpetas a la vez (las más profundas primero). Los archivos nunca se borran. */
+	public static function delete_many() {
+		self::guard( true );
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', (array) self::req( 'ids', array() ) ) ) ) );
+		if ( count( $ids ) > 500 ) {
+			wp_send_json_error( array( 'message' => __( 'Demasiadas carpetas a la vez (máximo 500).', 'atelier-de-medios' ) ), 400 );
+		}
+		$depth = array();
+		foreach ( $ids as $id ) {
+			$anc         = get_ancestors( $id, CDM_Folders::TAX, 'taxonomy' );
+			$depth[ $id ] = count( $anc );
+		}
+		usort( $ids, function ( $a, $b ) use ( $depth ) {
+			return $depth[ $b ] - $depth[ $a ];
+		} );
+		$deleted = 0;
+		foreach ( $ids as $id ) {
+			if ( ! CDM_Folders::exists( $id ) ) {
+				continue;
+			}
+			$r = CDM_Folders::delete( $id );
+			if ( is_wp_error( $r ) ) {
+				wp_send_json_error( array( 'message' => $r->get_error_message() ), 400 );
+			}
+			$deleted++;
+		}
+		self::done( true, array( 'deleted' => $deleted ) );
 	}
 }

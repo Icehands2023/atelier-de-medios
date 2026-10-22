@@ -259,6 +259,9 @@
 		this.current = opts.current || 'all';
 		this.q = '';
 		this.cat = 0;
+		this.sel = {};
+		this.anchor = null;
+		this.selecting = false;
 		this.open = {};
 		try { this.open = JSON.parse(ls('cdmOpen') || '{}') || {}; } catch (e) { this.open = {}; }
 		if (typeof this.current === 'number') {
@@ -294,6 +297,9 @@
 		if (C.canManage) {
 			$('<button type="button" class="cdm-ibtn cdm-new" aria-label="' + T.newFolder + '" title="' + T.newFolder + '">').text('+').appendTo($b);
 		}
+		if (C.canManage) {
+			$('<button type="button" class="cdm-ibtn cdm-selmode" aria-pressed="false" aria-label="' + T.selectMode + '" title="' + T.selectMode + '">').html('<svg viewBox="0 0 20 20" width="16" height="16"><path fill="currentColor" d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm1 2v10h10V5H5zm2.2 5.1l1.4-1.4 1.3 1.3 3-3 1.4 1.4-4.4 4.4-2.7-2.7z"/></svg>').appendTo($b);
+		}
 		$('<button type="button" class="cdm-ibtn cdm-expand" aria-label="' + T.expandAll + '" title="' + T.expandAll + '">').html('<svg viewBox="0 0 20 20" width="16" height="16"><path fill="currentColor" d="M5 7l5 5 5-5z"/></svg>').appendTo($b);
 		if (this.opts.collapsible) {
 			$('<button type="button" class="cdm-ibtn cdm-collapse" aria-label="' + T.collapse + '" title="' + T.collapse + '">').html('<svg viewBox="0 0 20 20" width="16" height="16"><path fill="currentColor" d="M12.5 4.5L7 10l5.5 5.5-1.4 1.4L4.2 10l6.9-6.9z"/></svg>').appendTo($b);
@@ -302,6 +308,7 @@
 		this.$search = $('<input type="search" class="cdm-search" autocomplete="off">').attr('placeholder', T.search).appendTo($('<div class="cdm-searchwrap">').appendTo(this.$el));
 		this.$chips = $('<div class="cdm-chips" role="group" aria-label="' + T.filterCat + '">').appendTo(this.$el);
 		this.$tree = $('<div class="cdm-tree">').appendTo(this.$el);
+		this.$bar = $('<div class="cdm-selbar" role="toolbar">').hide().appendTo(this.$el);
 		this.$hint = $('<div class="cdm-hint">').appendTo(this.$el);
 
 		this.$search.on('input', function () { self.q = this.value; self.render(); });
@@ -327,13 +334,38 @@
 			self.saveOpen();
 			self.render();
 		});
-		this.$tree.on('click', '.cdm-row', function (e) {
-			if ($(e.target).closest('.cdm-more').length) { return; }
-			var raw = $(this).closest('.cdm-node').attr('data-id');
-			self.select(/^\d+$/.test(raw) ? parseInt(raw, 10) : raw);
+		this.$tree.on('click', '.cdm-chk', function (e) {
+			e.stopPropagation();
+			var id = parseInt($(this).closest('.cdm-node').attr('data-id'), 10);
+			self.pick(id, e.shiftKey, true);
 		});
+		this.$tree.on('click', '.cdm-row', function (e) {
+			if ($(e.target).closest('.cdm-more, .cdm-chk').length) { return; }
+			var raw = $(this).closest('.cdm-node').attr('data-id');
+			var isFolder = /^\d+$/.test(raw);
+			if (isFolder && C.canManage && (e.ctrlKey || e.metaKey || e.shiftKey)) {
+				e.preventDefault();
+				self.pick(parseInt(raw, 10), e.shiftKey, e.ctrlKey || e.metaKey);
+				return;
+			}
+			if (self.selCount() && !self.selecting) { self.clearSel(true); }
+			self.select(isFolder ? parseInt(raw, 10) : raw);
+		});
+		this.$el.on('click', '.cdm-selmode', function () {
+			self.selecting = !self.selecting;
+			if (!self.selecting) { self.sel = {}; self.anchor = null; }
+			self.render();
+		});
+		this.$el.on('click', '.cdm-sel-del', function () { self.askDeleteMany(); });
+		this.$el.on('click', '.cdm-sel-all', function () {
+			self.visibleIds().forEach(function (id) { self.sel[id] = true; });
+			self.render();
+		});
+		this.$el.on('click', '.cdm-sel-clear', function () { self.clearSel(); });
 		this.$tree.on('keydown', '.cdm-row', function (e) {
 			var raw = $(this).closest('.cdm-node').attr('data-id');
+			if (e.which === 27 && self.selCount()) { e.preventDefault(); self.clearSel(); return; }
+			if (e.which === 46 && C.canManage && self.selCount()) { e.preventDefault(); self.askDeleteMany(); return; }
 			if (e.which === 13 || e.which === 32) { e.preventDefault(); self.select(/^\d+$/.test(raw) ? parseInt(raw, 10) : raw); }
 			if (e.which === 113 && C.canManage && /^\d+$/.test(raw)) { e.preventDefault(); self.askRename(parseInt(raw, 10)); }
 		});
@@ -438,7 +470,9 @@
 			{ label: T.setCat, fn: function () { self.askCat(id); } },
 			{ label: T.moveTo, fn: function () { self.askMove(id); } },
 			'-',
-			{ label: T.del, danger: true, fn: function () { self.askDelete(id); } }
+			this.sel[id] && this.selCount() > 1
+				? { label: fmt(T.menuDelMany, this.selCount()), danger: true, fn: function () { self.askDeleteMany(); } }
+				: { label: T.del, danger: true, fn: function () { self.askDelete(id); } }
 		], this.container());
 	};
 
@@ -496,6 +530,68 @@
 			});
 	};
 
+	/* ---- selección múltiple de carpetas ---- */
+
+	Sidebar.prototype.selIds = function () {
+		var self = this;
+		return Object.keys(this.sel).map(Number).filter(function (id) { return self.sel[id] && byId(id); });
+	};
+
+	Sidebar.prototype.selCount = function () { return this.selIds().length; };
+
+	// Carpetas visibles ahora mismo, en el orden en que se ven.
+	Sidebar.prototype.visibleIds = function () {
+		var ids = [];
+		this.$tree.find('.cdm-node').each(function () {
+			var raw = $(this).attr('data-id');
+			if (/^\d+$/.test(raw)) { ids.push(parseInt(raw, 10)); }
+		});
+		return ids;
+	};
+
+	// Alterna una carpeta (Ctrl/Cmd o casilla) o selecciona un rango consecutivo (Mayús).
+	Sidebar.prototype.pick = function (id, range, toggle) {
+		var vis = this.visibleIds();
+		if (range) {
+			var from = this.anchor !== null && vis.indexOf(this.anchor) > -1 ? this.anchor : (typeof this.current === 'number' && vis.indexOf(this.current) > -1 ? this.current : id);
+			var a = vis.indexOf(from), b = vis.indexOf(id);
+			if (a > -1 && b > -1) {
+				if (!toggle) { this.sel = {}; }
+				for (var i = Math.min(a, b); i <= Math.max(a, b); i++) { this.sel[vis[i]] = true; }
+			}
+		} else {
+			if (this.sel[id]) { delete this.sel[id]; } else { this.sel[id] = true; }
+			this.anchor = id;
+		}
+		this.render();
+	};
+
+	Sidebar.prototype.clearSel = function (keepMode) {
+		this.sel = {};
+		this.anchor = null;
+		if (!keepMode) { this.selecting = false; }
+		this.render();
+	};
+
+	Sidebar.prototype.askDeleteMany = function () {
+		var ids = this.selIds(), self = this;
+		if (!ids.length) { return; }
+		if (ids.length === 1) { this.askDelete(ids[0]); return; }
+		dialog({ container: this.container(), title: T.del, message: fmt(T.confirmDelMany, ids.length), ok: T.delete, danger: true })
+			.done(function () {
+				api('delete_many', { ids: ids })
+					.done(function (r) {
+						var cur = self.current;
+						self.sel = {};
+						self.anchor = null;
+						self.selecting = false;
+						if (typeof cur === 'number' && ids.indexOf(cur) > -1) { self.select('all'); } else { self.render(); }
+						toast(fmt(T.deletedMany, r.deleted || ids.length));
+					})
+					.fail(function (m) { toast(m, true); });
+			});
+	};
+
 	Sidebar.prototype.askDelete = function (id) {
 		var f = byId(id), self = this;
 		if (!f) { return; }
@@ -546,8 +642,11 @@
 			.toggleClass('has-children', !!kids.length)
 			.toggleClass('is-open', isOpen)
 			.toggleClass('is-dim', filtering && !match[f.id]);
-		var $row = $('<div class="cdm-row" tabindex="0">').css('padding-left', 8 + depth * 14).appendTo($li);
+		var $row = $('<div class="cdm-row" tabindex="0">').css('padding-left', 8 + depth * 14).toggleClass('is-sel', !!this.sel[f.id]).appendTo($li);
 		if (C.canManage) { $row.attr('draggable', 'true'); }
+		if (C.canManage && this.selecting) {
+			$('<input type="checkbox" class="cdm-chk" tabindex="-1">').attr('aria-label', f.name).prop('checked', !!this.sel[f.id]).appendTo($row);
+		}
 		if (kids.length) {
 			$('<button type="button" class="cdm-toggle" tabindex="-1" aria-label="">').html('<svg viewBox="0 0 20 20" width="14" height="14"><path fill="currentColor" d="M7 4.5l6 5.5-6 5.5z"/></svg>').appendTo($row);
 		} else {
@@ -569,6 +668,7 @@
 	Sidebar.prototype.render = function () {
 		var self = this;
 		var scroll = this.$tree.scrollTop();
+		Object.keys(this.sel).forEach(function (k) { if (!byId(parseInt(k, 10))) { delete self.sel[k]; } });
 		this.renderChips();
 		this.$tree.empty();
 
@@ -599,6 +699,20 @@
 			$('<p class="cdm-empty">').text(T.empty).appendTo(this.$tree);
 		}
 		this.$tree.scrollTop(scroll);
+
+		var n = this.selCount();
+		this.$el.find('.cdm-selmode').toggleClass('is-on', this.selecting || n > 0).attr('aria-pressed', this.selecting ? 'true' : 'false');
+		this.$el.toggleClass('is-selecting', this.selecting || n > 0);
+		if (n) {
+			this.$bar.empty()
+				.append($('<span class="cdm-sel-n">').text(fmt(T.selCount, n)))
+				.append($('<button type="button" class="cdm-sel-all">').text(T.selAll))
+				.append($('<button type="button" class="cdm-sel-clear">').text(T.selClear))
+				.append($('<button type="button" class="cdm-sel-del">').text(T.delete))
+				.show();
+		} else {
+			this.$bar.hide().empty();
+		}
 
 		if (this.opts.mode === 'media') {
 			var cur = typeof this.current === 'number' ? byId(this.current) : null;

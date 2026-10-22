@@ -4,7 +4,7 @@ Tags: media library, folders, media folders, organize, page builder
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,9 @@ Nothing is deleted unless you enable the option "delete data on uninstall" in th
 
 == Changelog ==
 
+= 1.6.0 =
+* New: select several folders (Shift for a range, Ctrl/Cmd for individual ones, or checkboxes) and delete them at once.
+
 = 1.5.0 =
 * Code reviewed with Plugin Check; internal identifier renamed to atelier-de-medios.
 
@@ -84,6 +87,9 @@ Nothing is deleted unless you enable the option "delete data on uninstall" in th
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+Adds multi-selection and bulk deletion of folders.
 
 = 1.5.0 =
 The plugin folder and main file were renamed to atelier-de-medios. Reinstall once if you installed an earlier version manually.
