@@ -282,3 +282,6 @@ body.cdm-dragging .uploader-editor { display: none !important; pointer-events: n
 	padding: 3px 10px; border: 1px solid var(--cdm-border); border-radius: 4px; background: #fff; color: var(--cdm-text); cursor: pointer; font-size: 12px;
 }
 .cdm-selbar .cdm-sel-del { margin-left: auto; border-color: #b32d2e; background: #b32d2e; color: #fff; font-weight: 600; }
+
+.cdm-field-chk { display: flex !important; flex-direction: row !important; align-items: flex-start; gap: 8px; color: #b32d2e; font-weight: 600; }
+.cdm-field-chk input { margin-top: 2px; }

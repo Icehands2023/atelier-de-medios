@@ -154,6 +154,11 @@
 		(opts.fields || []).forEach(function (fd) {
 			var $row = $('<label class="cdm-field">').append($('<span>').text(fd.label));
 			var $in;
+			if (fd.type === 'checkbox') {
+				$row.addClass('cdm-field-chk').empty().append($('<input type="checkbox" value="1">').attr('name', fd.name), $('<span>').text(fd.label));
+				$row.appendTo($f);
+				return;
+			}
 			if (fd.type === 'select') {
 				$in = $('<select>');
 				fd.options.forEach(function (o) {
@@ -180,9 +185,9 @@
 		$f.on('submit', function (e) {
 			e.preventDefault();
 			var vals = {}, bad = false;
-			$f.find('[name]').each(function () { vals[this.name] = $(this).val(); });
+			$f.find('[name]').each(function () { vals[this.name] = this.type === 'checkbox' ? (this.checked ? 1 : 0) : $(this).val(); });
 			(opts.fields || []).forEach(function (fd) {
-				if (fd.type !== 'select' && fd.type !== 'color' && !$.trim(vals[fd.name])) { bad = true; $f.find('[name="' + fd.name + '"]').trigger('focus'); }
+				if (fd.type !== 'select' && fd.type !== 'color' && fd.type !== 'checkbox' && !$.trim(vals[fd.name])) { bad = true; $f.find('[name="' + fd.name + '"]').trigger('focus'); }
 			});
 			if (bad) { return; }
 			close();
@@ -577,9 +582,9 @@
 		var ids = this.selIds(), self = this;
 		if (!ids.length) { return; }
 		if (ids.length === 1) { this.askDelete(ids[0]); return; }
-		dialog({ container: this.container(), title: T.del, message: fmt(T.confirmDelMany, ids.length), ok: T.delete, danger: true })
-			.done(function () {
-				api('delete_many', { ids: ids })
+		dialog({ container: this.container(), title: T.del, message: fmt(T.confirmDelMany, ids.length), ok: T.delete, danger: true, fields: [{ type: 'checkbox', name: 'purge', label: T.purgeFiles }] })
+			.done(function (v) {
+				api('delete_many', { ids: ids, purge: v.purge })
 					.done(function (r) {
 						var cur = self.current;
 						self.sel = {};
@@ -595,9 +600,9 @@
 	Sidebar.prototype.askDelete = function (id) {
 		var f = byId(id), self = this;
 		if (!f) { return; }
-		dialog({ container: this.container(), title: T.del, message: fmt(T.confirmDelete, f.name), ok: T.delete, danger: true })
-			.done(function () {
-				api('delete', { id: id })
+		dialog({ container: this.container(), title: T.del, message: fmt(T.confirmDelete, f.name), ok: T.delete, danger: true, fields: [{ type: 'checkbox', name: 'purge', label: T.purgeFiles }] })
+			.done(function (v) {
+				api('delete', { id: id, purge: v.purge })
 					.done(function () { if (self.current === id) { self.select('all'); } })
 					.fail(function (m) { toast(m, true); });
 			});

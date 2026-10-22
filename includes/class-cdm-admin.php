@@ -123,6 +123,7 @@ class CDM_Admin {
 			'dragFile'       => __( '1 archivo', 'atelier-de-medios' ),
 			'moveHere'       => __( 'Mover a esta carpeta', 'atelier-de-medios' ),
 			'uploadTo'       => __( 'Las subidas irán a:', 'atelier-de-medios' ),
+			'purgeFiles'     => __( 'Eliminar también los archivos de estas carpetas y sus subcarpetas (definitivo, no se puede deshacer)', 'atelier-de-medios' ),
 			'selectMode'     => __( 'Seleccionar varias carpetas', 'atelier-de-medios' ),
 			/* translators: %d: number of selected folders. */
 			'selCount'       => __( '%d seleccionadas', 'atelier-de-medios' ),
@@ -368,6 +369,7 @@ class CDM_Admin {
 	private static function changelog() {
 		return array(
 			array( '1.6.0', '2026-10-22', array(
+				array( 'new', __( 'Al eliminar carpetas puedes marcar la opción de borrar también los archivos que contienen (por defecto no se borran).', 'atelier-de-medios' ) ),
 				array( 'new', __( 'Selección múltiple de carpetas: Mayús+clic para un rango, Ctrl/Cmd+clic para carpetas sueltas, o el modo de casillas del encabezado. Elimina todas las seleccionadas de una vez (los archivos no se borran).', 'atelier-de-medios' ) ),
 			) ),
 			array( '1.5.0', '2026-10-22', array(

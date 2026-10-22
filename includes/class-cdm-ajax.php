@@ -55,7 +55,11 @@ class CDM_Ajax {
 
 	public static function delete() {
 		self::guard( true );
-		self::done( CDM_Folders::delete( absint( self::req( 'id', 0 ) ) ) );
+		$id = absint( self::req( 'id', 0 ) );
+		if ( self::req( 'purge', 0 ) ) {
+			self::purge_files( array( $id ) );
+		}
+		self::done( CDM_Folders::delete( $id ) );
 	}
 
 	public static function set_cat() {
@@ -141,6 +145,9 @@ class CDM_Ajax {
 		if ( count( $ids ) > 500 ) {
 			wp_send_json_error( array( 'message' => __( 'Demasiadas carpetas a la vez (máximo 500).', 'atelier-de-medios' ) ), 400 );
 		}
+		if ( self::req( 'purge', 0 ) ) {
+			self::purge_files( $ids );
+		}
 		$depth = array();
 		foreach ( $ids as $id ) {
 			$anc         = get_ancestors( $id, CDM_Folders::TAX, 'taxonomy' );
@@ -161,5 +168,34 @@ class CDM_Ajax {
 			$deleted++;
 		}
 		self::done( true, array( 'deleted' => $deleted ) );
+	}
+
+	/** Borra definitivamente los archivos de las carpetas indicadas y de sus subcarpetas. */
+	private static function purge_files( $folder_ids ) {
+		$terms = array();
+		foreach ( $folder_ids as $fid ) {
+			if ( ! CDM_Folders::exists( $fid ) ) {
+				continue;
+			}
+			$terms[] = $fid;
+			$terms   = array_merge( $terms, array_map( 'intval', get_term_children( $fid, CDM_Folders::TAX ) ) );
+		}
+		$terms = array_values( array_unique( $terms ) );
+		if ( ! $terms ) {
+			return;
+		}
+		$files = get_posts( array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'tax_query'      => array( array( 'taxonomy' => CDM_Folders::TAX, 'field' => 'term_id', 'terms' => $terms, 'include_children' => false ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- necesario para localizar los archivos de las carpetas.
+		) );
+		foreach ( $files as $aid ) {
+			if ( current_user_can( 'delete_post', $aid ) ) {
+				wp_delete_attachment( $aid, true );
+			}
+		}
 	}
 }
