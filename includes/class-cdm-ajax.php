@@ -14,10 +14,10 @@ class CDM_Ajax {
 
 	private static function guard( $manage = false ) {
 		if ( ! check_ajax_referer( 'cdm_nonce', 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => __( 'La sesión ha caducado. Recarga la página.', 'carpetas-medios' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'La sesión ha caducado. Recarga la página.', 'atelier-de-medios' ) ), 403 );
 		}
 		if ( ! current_user_can( 'upload_files' ) || ( $manage && ! CDM_Folders::can_manage() ) ) {
-			wp_send_json_error( array( 'message' => __( 'No tienes permiso para esta acción.', 'carpetas-medios' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'No tienes permiso para esta acción.', 'atelier-de-medios' ) ), 403 );
 		}
 	}
 
@@ -89,11 +89,11 @@ class CDM_Ajax {
 		self::guard( true );
 		$parent = absint( self::req( 'parent', 0 ) );
 		if ( $parent && ! CDM_Folders::exists( $parent ) ) {
-			wp_send_json_error( array( 'message' => __( 'La carpeta de destino no existe.', 'carpetas-medios' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'La carpeta de destino no existe.', 'atelier-de-medios' ) ), 400 );
 		}
 		$paths = array_values( array_unique( array_filter( array_map( 'strval', (array) self::req( 'paths', array() ) ), 'strlen' ) ) );
 		if ( count( $paths ) > 3000 ) {
-			wp_send_json_error( array( 'message' => __( 'Demasiadas carpetas en una sola importación (máximo 3000).', 'carpetas-medios' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Demasiadas carpetas en una sola importación (máximo 3000).', 'atelier-de-medios' ) ), 400 );
 		}
 		usort( $paths, function ( $a, $b ) {
 			return substr_count( $a, '/' ) - substr_count( $b, '/' );

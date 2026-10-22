@@ -1,19 +1,20 @@
 <?php
 /**
- * Plugin Name:       Atelier de Medios — Carpetas para tu biblioteca
+ * Plugin Name:       Atelier de Medios
  * Description:       Organiza la biblioteca de medios en carpetas y subcarpetas, con categorías de carpeta, arrastrar y soltar y árbol integrado en la ventana de medios de Divi, Elementor, Gutenberg y cualquier constructor que use el selector nativo de WordPress.
- * Version:           1.4.0
+ * Version:           1.5.0
  * Requires at least: 5.6
  * Requires PHP:      7.2
  * Author:            Ismael GPH
  * License:           GPL-2.0-or-later
- * Text Domain:       carpetas-medios
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       atelier-de-medios
  * Domain Path:       /languages
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CDM_VERSION', '1.4.0' );
+define( 'CDM_VERSION', '1.5.0' );
 define( 'CDM_FILE', __FILE__ );
 define( 'CDM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CDM_URL', plugin_dir_url( __FILE__ ) );
@@ -22,16 +23,20 @@ require_once CDM_DIR . 'includes/class-cdm-folders.php';
 require_once CDM_DIR . 'includes/class-cdm-media.php';
 require_once CDM_DIR . 'includes/class-cdm-ajax.php';
 require_once CDM_DIR . 'includes/class-cdm-import.php';
-require_once CDM_DIR . 'includes/class-cdm-updater.php';
+// El actualizador por GitHub sólo existe en la edición de GitHub; la edición del directorio de WordPress.org no lo incluye.
+if ( file_exists( CDM_DIR . 'includes/class-cdm-updater.php' ) ) {
+	require_once CDM_DIR . 'includes/class-cdm-updater.php';
+}
 require_once CDM_DIR . 'includes/class-cdm-admin.php';
 
 add_action( 'plugins_loaded', function () {
-	load_plugin_textdomain( 'carpetas-medios', false, dirname( plugin_basename( CDM_FILE ) ) . '/languages' );
 	CDM_Folders::init();
 	CDM_Media::init();
 	CDM_Ajax::init();
 	CDM_Import::init();
-	CDM_Updater::init();
+	if ( class_exists( 'CDM_Updater' ) ) {
+		CDM_Updater::init();
+	}
 	CDM_Admin::init();
 } );
 

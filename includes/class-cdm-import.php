@@ -5,6 +5,10 @@
  */
 defined( 'ABSPATH' ) || exit;
 
+// Este importador lee, una sola vez y bajo petición del administrador, las tablas propias de FileBird (no existe API de WordPress para ello).
+// Los nombres de tabla proceden de $wpdb->prefix y de cadenas fijas, nunca de datos del usuario; no procede usar caché en una migración puntual.
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+
 class CDM_Import {
 
 	const CHUNK = 100;
@@ -93,10 +97,10 @@ class CDM_Import {
 
 	private static function guard() {
 		if ( ! check_ajax_referer( 'cdm_import', 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => __( 'La sesión ha caducado. Recarga la página.', 'carpetas-medios' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'La sesión ha caducado. Recarga la página.', 'atelier-de-medios' ) ), 403 );
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'No tienes permiso para esta acción.', 'carpetas-medios' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'No tienes permiso para esta acción.', 'atelier-de-medios' ) ), 403 );
 		}
 	}
 
@@ -121,7 +125,7 @@ class CDM_Import {
 		self::guard();
 		$src = self::source();
 		if ( ! $src ) {
-			wp_send_json_error( array( 'message' => __( 'No se han encontrado datos de FileBird.', 'carpetas-medios' ) ), 404 );
+			wp_send_json_error( array( 'message' => __( 'No se han encontrado datos de FileBird.', 'atelier-de-medios' ) ), 404 );
 		}
 		$step      = isset( $_POST['step'] ) ? sanitize_key( wp_unslash( $_POST['step'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$overwrite = ! empty( $_POST['overwrite'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -137,7 +141,7 @@ class CDM_Import {
 		if ( 'files' === $step ) {
 			$map = get_transient( $key );
 			if ( ! is_array( $map ) ) {
-				wp_send_json_error( array( 'message' => __( 'Falta el paso de carpetas. Vuelve a empezar la importación.', 'carpetas-medios' ) ), 400 );
+				wp_send_json_error( array( 'message' => __( 'Falta el paso de carpetas. Vuelve a empezar la importación.', 'atelier-de-medios' ) ), 400 );
 			}
 			$rows  = self::get_files( $src, $offset, self::CHUNK );
 			$stats = array( 'assigned' => 0, 'skipped' => 0, 'missing' => 0 );
@@ -163,7 +167,7 @@ class CDM_Import {
 			wp_send_json_success( array_merge( $stats, array( 'done' => $done, 'next' => $offset + count( $rows ) ) ) );
 		}
 
-		wp_send_json_error( array( 'message' => __( 'Paso desconocido.', 'carpetas-medios' ) ), 400 );
+		wp_send_json_error( array( 'message' => __( 'Paso desconocido.', 'atelier-de-medios' ) ), 400 );
 	}
 
 	/** Crea la estructura (padres primero). Reutiliza carpetas existentes con el mismo nombre y padre. */
@@ -223,16 +227,16 @@ class CDM_Import {
 		$nonce = wp_create_nonce( 'cdm_import' );
 		?>
 		<div class="cdm-guide cdm-import" data-nonce="<?php echo esc_attr( $nonce ); ?>">
-			<h2><?php esc_html_e( 'Importar desde FileBird', 'carpetas-medios' ); ?></h2>
-			<p class="cdm-wide"><?php esc_html_e( 'Trae a Atelier de Medios las carpetas, subcarpetas y la ubicación de cada archivo que ya tienes en FileBird. FileBird no se modifica ni se borra, y funciona aunque esté desactivado. Si repites la importación no se duplican carpetas.', 'carpetas-medios' ); ?></p>
-			<div class="cdm-callout"><?php esc_html_e( 'Antes de importar, haz una copia de seguridad de la base de datos.', 'carpetas-medios' ); ?></div>
+			<h2><?php esc_html_e( 'Importar desde FileBird', 'atelier-de-medios' ); ?></h2>
+			<p class="cdm-wide"><?php esc_html_e( 'Trae a Atelier de Medios las carpetas, subcarpetas y la ubicación de cada archivo que ya tienes en FileBird. FileBird no se modifica ni se borra, y funciona aunque esté desactivado. Si repites la importación no se duplican carpetas.', 'atelier-de-medios' ); ?></p>
+			<div class="cdm-callout"><?php esc_html_e( 'Antes de importar, haz una copia de seguridad de la base de datos.', 'atelier-de-medios' ); ?></div>
 
-			<p><button type="button" class="button button-primary" id="cdm-scan"><?php esc_html_e( '1. Analizar FileBird', 'carpetas-medios' ); ?></button></p>
+			<p><button type="button" class="button button-primary" id="cdm-scan"><?php esc_html_e( '1. Analizar FileBird', 'atelier-de-medios' ); ?></button></p>
 			<div id="cdm-scan-result" class="cdm-wide" hidden></div>
 
 			<div id="cdm-run-box" hidden>
-				<p><label><input type="checkbox" id="cdm-overwrite"> <?php esc_html_e( 'Sobrescribir archivos que ya estén en una carpeta de Atelier de Medios (por defecto se respetan).', 'carpetas-medios' ); ?></label></p>
-				<p><button type="button" class="button button-primary" id="cdm-run"><?php esc_html_e( '2. Importar ahora', 'carpetas-medios' ); ?></button></p>
+				<p><label><input type="checkbox" id="cdm-overwrite"> <?php esc_html_e( 'Sobrescribir archivos que ya estén en una carpeta de Atelier de Medios (por defecto se respetan).', 'atelier-de-medios' ); ?></label></p>
+				<p><button type="button" class="button button-primary" id="cdm-run"><?php esc_html_e( '2. Importar ahora', 'atelier-de-medios' ); ?></button></p>
 				<div class="cdm-progress" id="cdm-progress" hidden><div class="cdm-bar"><span id="cdm-bar-fill"></span></div><p id="cdm-progress-txt"></p></div>
 			</div>
 			<p id="cdm-import-end" class="cdm-wide" hidden></p>
@@ -241,13 +245,13 @@ class CDM_Import {
 		(function ($) {
 			var $root = $('.cdm-import'), nonce = $root.data('nonce');
 			function call(action, data) { return $.post(ajaxurl, $.extend({ action: action, nonce: nonce }, data || {})); }
-			function msg(r) { return (r && r.data && r.data.message) || '<?php echo esc_js( __( 'Error inesperado.', 'carpetas-medios' ) ); ?>'; }
+			function msg(r) { return (r && r.data && r.data.message) || '<?php echo esc_js( __( 'Error inesperado.', 'atelier-de-medios' ) ); ?>'; }
 			$('#cdm-scan').on('click', function () {
 				var $out = $('#cdm-scan-result').prop('hidden', false).text('…');
 				call('cdm_import_scan').done(function (r) {
 					if (!r.success) { $out.text(msg(r)); return; }
-					if (!r.data.found) { $out.text('<?php echo esc_js( __( 'No se han encontrado datos de FileBird en esta base de datos.', 'carpetas-medios' ) ); ?>'); $('#cdm-run-box').prop('hidden', true); return; }
-					$out.text(r.data.folders + ' <?php echo esc_js( __( 'carpetas y', 'carpetas-medios' ) ); ?> ' + r.data.files + ' <?php echo esc_js( __( 'archivos organizados encontrados en FileBird.', 'carpetas-medios' ) ); ?>');
+					if (!r.data.found) { $out.text('<?php echo esc_js( __( 'No se han encontrado datos de FileBird en esta base de datos.', 'atelier-de-medios' ) ); ?>'); $('#cdm-run-box').prop('hidden', true); return; }
+					$out.text(r.data.folders + ' <?php echo esc_js( __( 'carpetas y', 'atelier-de-medios' ) ); ?> ' + r.data.files + ' <?php echo esc_js( __( 'archivos organizados encontrados en FileBird.', 'atelier-de-medios' ) ); ?>');
 					$('#cdm-run-box').prop('hidden', !(r.data.folders > 0));
 					$root.data('total', r.data.files);
 				}).fail(function (x) { $out.text(msg(x.responseJSON)); });
@@ -257,7 +261,7 @@ class CDM_Import {
 				var $p = $('#cdm-progress').prop('hidden', false), $t = $('#cdm-progress-txt'), $f = $('#cdm-bar-fill');
 				var acc = { assigned: 0, skipped: 0, missing: 0 }, info = {};
 				function fail(x) { $t.text(msg(x && x.responseJSON ? x.responseJSON : x)); $btn.prop('disabled', false); }
-				$t.text('<?php echo esc_js( __( 'Creando carpetas…', 'carpetas-medios' ) ); ?>');
+				$t.text('<?php echo esc_js( __( 'Creando carpetas…', 'atelier-de-medios' ) ); ?>');
 				call('cdm_import_run', { step: 'folders' }).done(function (r) {
 					if (!r.success) { return fail(r); }
 					info = r.data;
@@ -270,7 +274,7 @@ class CDM_Import {
 							$t.text(s.data.next + ' / ' + info.total);
 							if (!s.data.done) { return next(s.data.next); }
 							$f.css('width', '100%');
-							$('#cdm-import-end').prop('hidden', false).html('<strong><?php echo esc_js( __( 'Importación completada.', 'carpetas-medios' ) ); ?></strong> ' + info.created + ' <?php echo esc_js( __( 'carpetas creadas', 'carpetas-medios' ) ); ?>, ' + info.reused + ' <?php echo esc_js( __( 'reutilizadas', 'carpetas-medios' ) ); ?>; ' + acc.assigned + ' <?php echo esc_js( __( 'archivos asignados', 'carpetas-medios' ) ); ?>, ' + acc.skipped + ' <?php echo esc_js( __( 'respetados', 'carpetas-medios' ) ); ?>' + (info.failed ? ', ' + info.failed + ' <?php echo esc_js( __( 'carpetas con error', 'carpetas-medios' ) ); ?>' : '') + '. <a href="<?php echo esc_url( admin_url( 'upload.php' ) ); ?>"><?php echo esc_js( __( 'Ver la biblioteca', 'carpetas-medios' ) ); ?></a>');
+							$('#cdm-import-end').prop('hidden', false).html('<strong><?php echo esc_js( __( 'Importación completada.', 'atelier-de-medios' ) ); ?></strong> ' + info.created + ' <?php echo esc_js( __( 'carpetas creadas', 'atelier-de-medios' ) ); ?>, ' + info.reused + ' <?php echo esc_js( __( 'reutilizadas', 'atelier-de-medios' ) ); ?>; ' + acc.assigned + ' <?php echo esc_js( __( 'archivos asignados', 'atelier-de-medios' ) ); ?>, ' + acc.skipped + ' <?php echo esc_js( __( 'respetados', 'atelier-de-medios' ) ); ?>' + (info.failed ? ', ' + info.failed + ' <?php echo esc_js( __( 'carpetas con error', 'atelier-de-medios' ) ); ?>' : '') + '. <a href="<?php echo esc_url( admin_url( 'upload.php' ) ); ?>"><?php echo esc_js( __( 'Ver la biblioteca', 'atelier-de-medios' ) ); ?></a>');
 							$btn.prop('disabled', false);
 						}).fail(fail);
 					})(0);

@@ -59,13 +59,12 @@ class CDM_Media {
 
 	public static function filter_ajax_query( $query ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- la propia acción de WP ya verifica permisos.
-		$raw = isset( $_REQUEST['query'] ) && is_array( $_REQUEST['query'] ) ? wp_unslash( $_REQUEST['query'] ) : array();
-		if ( ! isset( $raw['cdm_folder'] ) || is_array( $raw['cdm_folder'] ) ) {
+		if ( ! isset( $_REQUEST['query']['cdm_folder'] ) || ! is_scalar( $_REQUEST['query']['cdm_folder'] ) ) {
 			return $query;
 		}
-		$clause = self::tax_clause( sanitize_text_field( $raw['cdm_folder'] ) );
+		$clause = self::tax_clause( sanitize_text_field( wp_unslash( $_REQUEST['query']['cdm_folder'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( $clause ) {
-			$query['tax_query'] = array_merge( isset( $query['tax_query'] ) ? (array) $query['tax_query'] : array(), array( $clause ) );
+			$query['tax_query'] = array_merge( isset( $query['tax_query'] ) ? (array) $query['tax_query'] : array(), array( $clause ) ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- filtrado nativo por la taxonomía de carpetas.
 		}
 		return $query;
 	}
@@ -79,7 +78,7 @@ class CDM_Media {
 		if ( $clause ) {
 			$tax = (array) $q->get( 'tax_query' );
 			$tax[] = $clause;
-			$q->set( 'tax_query', $tax );
+			$q->set( 'tax_query', $tax ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- filtrado nativo por la taxonomía de carpetas.
 		}
 	}
 
@@ -103,11 +102,11 @@ class CDM_Media {
 		foreach ( $cols as $k => $v ) {
 			$out[ $k ] = $v;
 			if ( 'title' === $k ) {
-				$out['cdm_folder'] = __( 'Carpeta', 'carpetas-medios' );
+				$out['cdm_folder'] = __( 'Carpeta', 'atelier-de-medios' );
 			}
 		}
 		if ( ! isset( $out['cdm_folder'] ) ) {
-			$out['cdm_folder'] = __( 'Carpeta', 'carpetas-medios' );
+			$out['cdm_folder'] = __( 'Carpeta', 'atelier-de-medios' );
 		}
 		return $out;
 	}
@@ -139,7 +138,7 @@ class CDM_Media {
 
 	public static function bulk_actions( $actions ) {
 		if ( current_user_can( 'upload_files' ) ) {
-			$actions['cdm_move'] = __( 'Mover a carpeta…', 'carpetas-medios' );
+			$actions['cdm_move'] = __( 'Mover a carpeta…', 'atelier-de-medios' );
 		}
 		return $actions;
 	}
@@ -153,7 +152,7 @@ class CDM_Media {
 		}
 		$html = '';
 		if ( $with_none ) {
-			$html .= '<option value="0">' . esc_html__( 'Sin carpeta', 'carpetas-medios' ) . '</option>';
+			$html .= '<option value="0">' . esc_html__( 'Sin carpeta', 'atelier-de-medios' ) . '</option>';
 		}
 		$walk = function ( $parent, $depth ) use ( &$walk, $by, $selected, &$html ) {
 			if ( empty( $by[ $parent ] ) ) {
@@ -183,8 +182,8 @@ class CDM_Media {
 		if ( ! $screen || 'upload' !== $screen->id || 'bar' !== $which || ! current_user_can( 'upload_files' ) ) {
 			return;
 		}
-		echo '<span class="cdm-bulk-target" style="display:none"><label class="screen-reader-text" for="cdm_bulk_target">' . esc_html__( 'Carpeta de destino', 'carpetas-medios' ) . '</label>';
-		echo '<select name="cdm_bulk_target" id="cdm_bulk_target"><option value="">' . esc_html__( 'Elige carpeta de destino…', 'carpetas-medios' ) . '</option>' . self::folder_options() . '</select></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ya escapado.
+		echo '<span class="cdm-bulk-target" style="display:none"><label class="screen-reader-text" for="cdm_bulk_target">' . esc_html__( 'Carpeta de destino', 'atelier-de-medios' ) . '</label>';
+		echo '<select name="cdm_bulk_target" id="cdm_bulk_target"><option value="">' . esc_html__( 'Elige carpeta de destino…', 'atelier-de-medios' ) . '</option>' . self::folder_options() . '</select></span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ya escapado.
 	}
 
 	public static function handle_bulk( $location, $action, $ids ) {
@@ -211,10 +210,10 @@ class CDM_Media {
 		if ( 'moved' === $code ) {
 			$n = isset( $_GET['cdm_n'] ) ? absint( $_GET['cdm_n'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			/* translators: %d: número de archivos. */
-			$msg = sprintf( _n( '%d archivo movido a la carpeta.', '%d archivos movidos a la carpeta.', $n, 'carpetas-medios' ), $n );
+			$msg = sprintf( _n( '%d archivo movido a la carpeta.', '%d archivos movidos a la carpeta.', $n, 'atelier-de-medios' ), $n );
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
 		} else {
-			echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Elige una carpeta de destino antes de mover los archivos.', 'carpetas-medios' ) . '</p></div>';
+			echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Elige una carpeta de destino antes de mover los archivos.', 'atelier-de-medios' ) . '</p></div>';
 		}
 	}
 
@@ -226,7 +225,7 @@ class CDM_Media {
 		}
 		$t = CDM_Folders::folder_of( $post->ID );
 		$fields['cdm_folder_id'] = array(
-			'label' => __( 'Carpeta', 'carpetas-medios' ),
+			'label' => __( 'Carpeta', 'atelier-de-medios' ),
 			'input' => 'html',
 			'html'  => sprintf(
 				'<select class="cdm-field-select" name="attachments[%1$d][cdm_folder_id]" id="attachments-%1$d-cdm_folder_id" data-id="%1$d">%2$s</select>',

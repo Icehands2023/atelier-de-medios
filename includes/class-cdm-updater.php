@@ -67,7 +67,7 @@ class CDM_Updater {
 		$r = self::remote();
 		if ( $r && version_compare( $r['version'], CDM_VERSION, '>' ) ) {
 			$transient->response[ plugin_basename( CDM_FILE ) ] = (object) array(
-				'slug'        => 'carpetas-medios',
+				'slug'        => 'atelier-de-medios',
 				'plugin'      => plugin_basename( CDM_FILE ),
 				'new_version' => $r['version'],
 				'url'         => $r['url'],
@@ -78,7 +78,7 @@ class CDM_Updater {
 	}
 
 	public static function info( $res, $action, $args ) {
-		if ( 'plugin_information' !== $action || empty( $args->slug ) || 'carpetas-medios' !== $args->slug ) {
+		if ( 'plugin_information' !== $action || empty( $args->slug ) || 'atelier-de-medios' !== $args->slug ) {
 			return $res;
 		}
 		$r = self::remote();
@@ -87,7 +87,7 @@ class CDM_Updater {
 		}
 		return (object) array(
 			'name'          => 'Atelier de Medios',
-			'slug'          => 'carpetas-medios',
+			'slug'          => 'atelier-de-medios',
 			'version'       => $r['version'],
 			'author'        => 'Ismael GPH',
 			'homepage'      => $r['url'],
@@ -96,13 +96,13 @@ class CDM_Updater {
 		);
 	}
 
-	/** Si el ZIP viene de «zipball», su carpeta raíz tiene otro nombre: se renombra a carpetas-medios. */
+	/** Si el ZIP viene de «zipball», su carpeta raíz tiene otro nombre: se renombra a atelier-de-medios. */
 	public static function fix_folder( $source, $remote, $upgrader, $extra ) {
 		if ( empty( $extra['plugin'] ) || plugin_basename( CDM_FILE ) !== $extra['plugin'] ) {
 			return $source;
 		}
 		global $wp_filesystem;
-		$wanted = trailingslashit( dirname( untrailingslashit( $source ) ) ) . 'carpetas-medios/';
+		$wanted = trailingslashit( dirname( untrailingslashit( $source ) ) ) . 'atelier-de-medios/';
 		if ( untrailingslashit( $source ) === untrailingslashit( $wanted ) || ! $wp_filesystem ) {
 			return $source;
 		}
@@ -111,7 +111,7 @@ class CDM_Updater {
 
 	public static function links( $links ) {
 		$url = wp_nonce_url( admin_url( 'plugins.php?cdm_check=1' ), 'cdm_check' );
-		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Buscar actualizaciones', 'carpetas-medios' ) . '</a>' );
+		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Buscar actualizaciones', 'atelier-de-medios' ) . '</a>' );
 		return $links;
 	}
 

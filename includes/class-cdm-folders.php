@@ -19,7 +19,7 @@ class CDM_Folders {
 			self::TAX,
 			'attachment',
 			array(
-				'label'                 => __( 'Carpetas de medios', 'carpetas-medios' ),
+				'label'                 => __( 'Carpetas de medios', 'atelier-de-medios' ),
 				'hierarchical'          => true,
 				'public'                => false,
 				'publicly_queryable'    => false,
@@ -85,6 +85,8 @@ class CDM_Folders {
 		return ! current_user_can( 'edit_others_posts' );
 	}
 
+	// Contadores por autor: no existe función de WordPress equivalente; los parámetros se preparan con $wpdb->prepare() y los fragmentos son fijos.
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 	private static function own_counts() {
 		global $wpdb;
 		$rows = $wpdb->get_results(
@@ -124,6 +126,7 @@ class CDM_Folders {
 			'none' => max( 0, $all - $assigned ),
 		);
 	}
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 	public static function payload() {
 		return array(
@@ -146,7 +149,7 @@ class CDM_Folders {
 
 	private static function friendly( WP_Error $e ) {
 		if ( in_array( $e->get_error_code(), array( 'term_exists', 'duplicate_term_slug' ), true ) ) {
-			return new WP_Error( 'cdm_exists', __( 'Ya existe una carpeta con ese nombre en esta ubicación.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_exists', __( 'Ya existe una carpeta con ese nombre en esta ubicación.', 'atelier-de-medios' ) );
 		}
 		return $e;
 	}
@@ -162,11 +165,11 @@ class CDM_Folders {
 	public static function create( $name, $parent = 0, $cat = 0 ) {
 		$name = self::clean_name( $name );
 		if ( '' === $name ) {
-			return new WP_Error( 'cdm_empty', __( 'El nombre no puede estar vacío.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_empty', __( 'El nombre no puede estar vacío.', 'atelier-de-medios' ) );
 		}
 		$parent = (int) $parent;
 		if ( $parent && ! self::exists( $parent ) ) {
-			return new WP_Error( 'cdm_parent', __( 'La carpeta superior no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_parent', __( 'La carpeta superior no existe.', 'atelier-de-medios' ) );
 		}
 		$r = wp_insert_term( $name, self::TAX, array( 'parent' => $parent ) );
 		if ( is_wp_error( $r ) ) {
@@ -181,10 +184,10 @@ class CDM_Folders {
 	public static function rename( $id, $name ) {
 		$name = self::clean_name( $name );
 		if ( ! self::exists( $id ) ) {
-			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'atelier-de-medios' ) );
 		}
 		if ( '' === $name ) {
-			return new WP_Error( 'cdm_empty', __( 'El nombre no puede estar vacío.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_empty', __( 'El nombre no puede estar vacío.', 'atelier-de-medios' ) );
 		}
 		$r = wp_update_term( (int) $id, self::TAX, array( 'name' => $name ) );
 		return is_wp_error( $r ) ? self::friendly( $r ) : true;
@@ -194,14 +197,14 @@ class CDM_Folders {
 		$id     = (int) $id;
 		$parent = (int) $parent;
 		if ( ! self::exists( $id ) || ( $parent && ! self::exists( $parent ) ) ) {
-			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'atelier-de-medios' ) );
 		}
 		if ( $id === $parent ) {
-			return new WP_Error( 'cdm_loop', __( 'Una carpeta no puede estar dentro de sí misma.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_loop', __( 'Una carpeta no puede estar dentro de sí misma.', 'atelier-de-medios' ) );
 		}
 		$children = get_term_children( $id, self::TAX );
 		if ( $parent && is_array( $children ) && in_array( $parent, array_map( 'intval', $children ), true ) ) {
-			return new WP_Error( 'cdm_loop', __( 'No se puede mover una carpeta dentro de una de sus subcarpetas.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_loop', __( 'No se puede mover una carpeta dentro de una de sus subcarpetas.', 'atelier-de-medios' ) );
 		}
 		$r = wp_update_term( $id, self::TAX, array( 'parent' => $parent ) );
 		return is_wp_error( $r ) ? self::friendly( $r ) : true;
@@ -213,7 +216,7 @@ class CDM_Folders {
 	 */
 	public static function delete( $id ) {
 		if ( ! self::exists( $id ) ) {
-			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'atelier-de-medios' ) );
 		}
 		$r = wp_delete_term( (int) $id, self::TAX );
 		if ( is_wp_error( $r ) ) {
@@ -224,11 +227,11 @@ class CDM_Folders {
 
 	public static function set_category( $id, $cat ) {
 		if ( ! self::exists( $id ) ) {
-			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'atelier-de-medios' ) );
 		}
 		$cat = (int) $cat;
 		if ( $cat && ! self::category_exists( $cat ) ) {
-			return new WP_Error( 'cdm_cat_missing', __( 'La categoría no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_cat_missing', __( 'La categoría no existe.', 'atelier-de-medios' ) );
 		}
 		if ( $cat ) {
 			update_term_meta( (int) $id, self::META_CAT, $cat );
@@ -242,7 +245,7 @@ class CDM_Folders {
 	public static function assign( $ids, $folder ) {
 		$folder = (int) $folder;
 		if ( $folder && ! self::exists( $folder ) ) {
-			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_missing', __( 'La carpeta no existe.', 'atelier-de-medios' ) );
 		}
 		$n = 0;
 		foreach ( array_unique( array_map( 'intval', (array) $ids ) ) as $id ) {
@@ -290,7 +293,7 @@ class CDM_Folders {
 	public static function save_category( $id, $name, $color ) {
 		$name = self::clean_name( $name );
 		if ( '' === $name ) {
-			return new WP_Error( 'cdm_empty', __( 'El nombre no puede estar vacío.', 'carpetas-medios' ) );
+			return new WP_Error( 'cdm_empty', __( 'El nombre no puede estar vacío.', 'atelier-de-medios' ) );
 		}
 		$name = mb_substr( $name, 0, 60 );
 		$color = sanitize_hex_color( $color );
@@ -302,7 +305,7 @@ class CDM_Folders {
 		foreach ( $cats as $c ) {
 			$max = max( $max, (int) $c['id'] );
 			if ( (int) $c['id'] !== (int) $id && 0 === strcasecmp( $c['name'], $name ) ) {
-				return new WP_Error( 'cdm_exists', __( 'Ya existe una categoría con ese nombre.', 'carpetas-medios' ) );
+				return new WP_Error( 'cdm_exists', __( 'Ya existe una categoría con ese nombre.', 'atelier-de-medios' ) );
 			}
 		}
 		$id = (int) $id;
